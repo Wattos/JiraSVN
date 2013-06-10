@@ -1,4 +1,4 @@
-﻿namespace JiraSVN.Plugin
+﻿namespace JiraSVN.Plugin.UI
 {
 	partial class OptionUrlEntry
 	{

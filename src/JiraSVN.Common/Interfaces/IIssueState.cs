@@ -13,12 +13,14 @@
  */
 #endregion
 
+using System.Runtime.InteropServices;
+
 namespace JiraSVN.Common.Interfaces
 {
 	/// <summary>
 	/// Represents the current state of an issue (ie. Open, Closed, Resolved, etc.)
 	/// </summary>
-	[System.Runtime.InteropServices.ComVisible(false)]
+	[ComVisible(false)]
 	public interface IIssueState : IIdentifiable
 	{
 	}

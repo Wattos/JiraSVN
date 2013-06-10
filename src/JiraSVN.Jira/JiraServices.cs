@@ -12,6 +12,7 @@
  * limitations under the License.
  */
 #endregion
+
 using System;
 using System.Web.Services.Protocols;
 using JiraSVN.Common.Interfaces;
@@ -38,7 +39,8 @@ namespace JiraSVN.Jira
 		/// <summary>
 		/// Establises a connection to the jira soap server
 		/// </summary>
-		public bool Connect(string url, string userName, string password, Converter<string, string> settings, out IIssuesServiceConnection connection)
+		public bool Connect(string url, string userName, string password, Converter<string, string> settings,
+		                    out IIssuesServiceConnection connection)
 		{
 			try
 			{
@@ -48,7 +50,7 @@ namespace JiraSVN.Jira
 			catch (SoapException se)
 			{
 				if (se.Message.IndexOf("RemoteAuthenticationException", StringComparison.OrdinalIgnoreCase) > 0 ||
-					se.Message.IndexOf("Invalid username or password", StringComparison.OrdinalIgnoreCase) > 0)
+				    se.Message.IndexOf("Invalid username or password", StringComparison.OrdinalIgnoreCase) > 0)
 				{
 					Log.Error(se, "Logon failed for user {0} at {1}", userName, url);
 					connection = null;
@@ -58,8 +60,8 @@ namespace JiraSVN.Jira
 				throw;
 			}
 		}
-
 	}
+
 #if false		
 	/// <summary> Simple test </summary>
 	[TestFixture]

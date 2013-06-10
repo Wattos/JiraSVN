@@ -12,6 +12,7 @@
  * limitations under the License.
  */
 #endregion
+
 using System;
 using System.Collections;
 using System.Text.RegularExpressions;
@@ -19,9 +20,10 @@ using System.Windows.Forms;
 
 namespace JiraSVN.Plugin.UI
 {
-	class ListViewSort
+	internal class ListViewSort
 	{
-		readonly ListView _listView;
+		private readonly ListView _listView;
+
 		public ListViewSort(ListView listView)
 		{
 			_listView = listView;
@@ -33,19 +35,25 @@ namespace JiraSVN.Plugin.UI
 		#region List View Sorting...
 		private void ListHeader_Click(object sender, ColumnClickEventArgs e)
 		{
-			bool currSortAsc = _listView.ListViewItemSorter is FieldComparer ? ((FieldComparer)_listView.ListViewItemSorter).Ascending : false;
-			int currSortIx = _listView.ListViewItemSorter is FieldComparer ? ((FieldComparer)_listView.ListViewItemSorter).ColumnIndex : -1;
+			bool isFieldComparer = _listView.ListViewItemSorter as FieldComparer != null;
+			bool currSortAsc = isFieldComparer && ((FieldComparer)_listView.ListViewItemSorter).Ascending;
+			int currSortIx = isFieldComparer ? ((FieldComparer)_listView.ListViewItemSorter).ColumnIndex : -1;
 
-			this._listView.ListViewItemSorter = new FieldComparer(e.Column, currSortIx != e.Column ? true : !currSortAsc);
+			_listView.ListViewItemSorter = new FieldComparer(e.Column, currSortIx != e.Column || !currSortAsc);
 		}
 
-		class FieldComparer : IComparer
+		private class FieldComparer : IComparer
 		{
-			private static Regex _numberMatch = new Regex("(\\d+)");
+			private static readonly Regex NumberMatch = new Regex("(\\d+)");
 
 			public readonly bool Ascending;
 			public readonly int ColumnIndex;
-			public FieldComparer(int ix, bool ascending) { ColumnIndex = ix; Ascending = ascending; }
+
+			public FieldComparer(int ix, bool ascending)
+			{
+				ColumnIndex = ix;
+				Ascending = ascending;
+			}
 
 			int IComparer.Compare(object x, object y)
 			{
@@ -72,10 +80,10 @@ namespace JiraSVN.Plugin.UI
 			private int SortId(string s1, string s2)
 			{
 				int x1, x2;
-				Match m = _numberMatch.Match(s1);
+				Match m = NumberMatch.Match(s1);
 				if (m.Success && int.TryParse(m.Value, out x1))
 				{
-					m = _numberMatch.Match(s2);
+					m = NumberMatch.Match(s2);
 					if (m.Success && int.TryParse(m.Value, out x2))
 					{
 						return x1 < x2 ? -1 : x1 == x2 ? 0 : 1;
@@ -86,6 +94,5 @@ namespace JiraSVN.Plugin.UI
 			}
 		}
 		#endregion
-
 	}
 }

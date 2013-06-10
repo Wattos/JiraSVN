@@ -12,13 +12,14 @@
  * limitations under the License.
  */
 #endregion
+
 using System;
 using System.Collections.Generic;
 using JiraSVN.Common.Interfaces;
 
 namespace JiraSVN.Jira
 {
-	class NameSorter<T> : IComparer<T>
+	internal class NameSorter<T> : IComparer<T>
 		where T : IIdentifiable
 	{
 		int IComparer<T>.Compare(T x, T y)

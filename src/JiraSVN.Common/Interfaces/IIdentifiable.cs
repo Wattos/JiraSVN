@@ -13,16 +13,19 @@
  */
 #endregion
 
+using System.Runtime.InteropServices;
+
 namespace JiraSVN.Common.Interfaces
 {
 	/// <summary>
 	/// Represents a displayable and identifiable thing within the issue tracking system.
 	/// </summary>
-	[System.Runtime.InteropServices.ComVisible(false)]
+	[ComVisible(false)]
 	public interface IIdentifiable
 	{
 		/// <summary> A unique identifier/name of the item </summary>
 		string Id { get; }
+
 		/// <summary> The display name of the item </summary>
 		string Name { get; }
 	}

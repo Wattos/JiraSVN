@@ -13,13 +13,15 @@
  */
 #endregion
 
+using System.Runtime.InteropServices;
+
 namespace JiraSVN.Common.Interfaces
 {
 	/// <summary>
 	/// Represents a user of the issue tracking system, used to identify who reported the issue and 
 	/// to whom the issue is currently assigned.  Also used to transfer ownership of an issue.
 	/// </summary>
-	[System.Runtime.InteropServices.ComVisible(false)]
+	[ComVisible(false)]
 	public interface IIssueUser : IIdentifiable
 	{
 	}

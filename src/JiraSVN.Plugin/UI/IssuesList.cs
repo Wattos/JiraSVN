@@ -12,50 +12,55 @@
  * limitations under the License.
  */
 #endregion
+
 using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
-using JiraSVN.Common.Interfaces;
 using CSharpTest.Net.Reflection;
+using CSharpTest.Net.Serialization.StorageClasses;
+using JiraSVN.Common.Interfaces;
 
 namespace JiraSVN.Plugin.UI
 {
-    partial class IssuesList : Form
-    {
-		readonly ToolTipLabel _tipitem;
-		readonly IssuesListView _viewControl;
-		readonly ObjectSerializer _serializer;
-        private Timer _textChangedtimer;
+	partial class IssuesList : Form
+	{
+		private readonly ToolTipLabel _tipitem;
+		private readonly IssuesListView _viewControl;
+		private readonly ObjectSerializer _serializer;
+		private readonly Timer _textChangedtimer;
 
-        public IssuesList(IssuesListView viewControl)
+		public IssuesList(IssuesListView viewControl)
 		{
 			_viewControl = viewControl;
-            _serializer = new ObjectSerializer(this, "Top", "Left", "Height", "Width", "_splitter.SplitterDistance", "_worklogGroup.Visible");
+			_serializer = new ObjectSerializer(this, "Top", "Left", "Height", "Width", "_splitter.SplitterDistance",
+			                                   "_worklogGroup.Visible");
 			_serializer.ContinueOnError = true;
 
 			_tipitem = new ToolTipLabel();
-			this.Controls.Add(_tipitem);
+			Controls.Add(_tipitem);
 
 			InitializeComponent();
 
 			new ListViewSort(_listView);
 
-			_viewControl.FoundIssues.ListChanged += new ListChangedEventHandler(FoundIssues_ListChanged);
+			_viewControl.FoundIssues.ListChanged += FoundIssues_ListChanged;
 			_binding.DataSource = _viewControl;
-            _textChangedtimer = new Timer();
-            _textChangedtimer.Interval = 500;
-            _textChangedtimer.Tick += new EventHandler(_textChangedtimer_Tick);
+			_textChangedtimer = new Timer
+			{
+				Interval = 500
+			};
+			_textChangedtimer.Tick += _textChangedtimer_Tick;
 		}
 
-		void FoundIssues_ListChanged(object sender, ListChangedEventArgs e)
+		private void FoundIssues_ListChanged(object sender, ListChangedEventArgs e)
 		{
 			if (e.ListChangedType == ListChangedType.Reset)
 			{
-				Cursor oldCursor = this.Cursor;
-				this.Cursor = Cursors.WaitCursor;
+				Cursor oldCursor = Cursor;
+				Cursor = Cursors.WaitCursor;
 				_listView.Items.Clear();
-				this.Update();
+				Update();
 
 				_listView.SuspendLayout();
 				_listView.BeginUpdate();
@@ -63,7 +68,7 @@ namespace JiraSVN.Plugin.UI
 				{
 					foreach (IssueItemView item in _viewControl.FoundIssues)
 					{
-						ListViewItem lvi = new ListViewItem(item.DisplayId);
+						var lvi = new ListViewItem(item.DisplayId);
 						lvi.Checked = item.Selected;
 						lvi.SubItems.Add(item.Name);
 						lvi.SubItems.Add(item.CurrentState.Name);
@@ -72,7 +77,7 @@ namespace JiraSVN.Plugin.UI
 						lvi.SubItems.Add(item.LastModifiedOn.ToString("yyyy-MM-dd"));
 						lvi.SubItems.Add(item.CreatedOn.ToString("yyyy-MM-dd"));
 						lvi.Tag = item;
-						lvi.ToolTipText = String.Format("{1}", item.Name, item.FullDescription);
+						lvi.ToolTipText = String.Format("{0}-{1}", item.Name, item.FullDescription);
 
 						_listView.Items.Add(lvi);
 					}
@@ -88,18 +93,17 @@ namespace JiraSVN.Plugin.UI
 				{
 					_listView.ResumeLayout();
 					_listView.EndUpdate();
-					this.Cursor = oldCursor;
+					Cursor = oldCursor;
 				}
 			}
 		}
 
 		#region Form Load / Close
-
 		private void Form_Load(object sender, EventArgs e)
 		{
-			_serializer.Deserialize(new CSharpTest.Net.Serialization.StorageClasses.RegistryStorage());
-            showTimeTrackingToolStripMenuItem.Checked = _worklogGroup.Visible;
-			this.Activate();
+			_serializer.Deserialize(new RegistryStorage());
+			showTimeTrackingToolStripMenuItem.Checked = _worklogGroup.Visible;
+			Activate();
 		}
 
 		private void Form_Shown(object sender, EventArgs e)
@@ -108,16 +112,21 @@ namespace JiraSVN.Plugin.UI
 			FoundIssues_ListChanged(null, new ListChangedEventArgs(ListChangedType.Reset, 0));
 		}
 
-		void Form_Closing(object sender, FormClosingEventArgs e)
+		private void Form_Closing(object sender, FormClosingEventArgs e)
 		{
-			_serializer.Serialize(new CSharpTest.Net.Serialization.StorageClasses.RegistryStorage());
+			if (DialogResult == DialogResult.None)
+			{
+				e.Cancel = true;
+				return;
+			}
+
+			_serializer.Serialize(new RegistryStorage());
 			_binding.Dispose();
 			//_binding.DataSource = typeof(IssuesListView);
 		}
-
 		#endregion
 
-		void listView_ViewSelectedItem(object sender, EventArgs e)
+		private void listView_ViewSelectedItem(object sender, EventArgs e)
 		{
 			ListViewItem lvi = _listView.FocusedItem;
 			if (lvi != null && lvi.Tag is IIssue)
@@ -127,13 +136,13 @@ namespace JiraSVN.Plugin.UI
 
 		private void listView_ItemChecked(object sender, ItemCheckedEventArgs e)
 		{
-			IssueItemView issue = e.Item.Tag as IssueItemView;
+			var issue = e.Item.Tag as IssueItemView;
 			if (issue != null)
 				issue.Selected = e.Item.Checked;
 		}
-		
+
 		#region Tool-Tip behavior
-		void _listView_MouseMove(object sender, MouseEventArgs e)
+		private void _listView_MouseMove(object sender, MouseEventArgs e)
 		{
 			ListViewHitTestInfo hit = _listView.HitTest(e.Location);
 			if (_tipitem.Visible && (hit.Item == null || _tipitem.Tag != hit.Item))
@@ -141,28 +150,28 @@ namespace JiraSVN.Plugin.UI
 
 			if (!_tipitem.Visible)
 			{
-				Point loc = this.PointToClient(_listView.PointToScreen(e.Location));
+				Point loc = PointToClient(_listView.PointToScreen(e.Location));
 				loc.Offset(5, 5);
 				_tipitem.Location = loc;
 			}
 		}
 
-		void _listView_ItemMouseHover(object sender, ListViewItemMouseHoverEventArgs e)
+		private void _listView_ItemMouseHover(object sender, ListViewItemMouseHoverEventArgs e)
 		{
-            if (e != null && e.Item != null && e.Item.Tag is IIssue
-				&& !string.IsNullOrEmpty(e.Item.ToolTipText))	// don't show big blank square when tip is empty
+			if (e != null && e.Item != null && e.Item.Tag is IIssue
+			    && !string.IsNullOrEmpty(e.Item.ToolTipText)) // don't show big blank square when tip is empty
 			{
 				if (!_tipitem.Visible)
 				{
 					_tipitem.DisplayWidth = _listView.Width / 2;
-                    _tipitem.Tag = e.Item;
-                    _tipitem.Text = e.Item.ToolTipText;
-                    _tipitem.Visible = true;
-
-                }
+					_tipitem.Tag = e.Item;
+					_tipitem.Text = e.Item.ToolTipText;
+					_tipitem.Visible = true;
+				}
 			}
 		}
 		#endregion
+
 		#region Context Menu
 		private void contextMenu_Opening(object sender, CancelEventArgs e)
 		{
@@ -181,22 +190,22 @@ namespace JiraSVN.Plugin.UI
 
 			if (_currentItem != null && _currentItem.Tag is IssueItemView)
 			{
-				IssueItemView issue = (IssueItemView)_currentItem.Tag;
+				var issue = (IssueItemView)_currentItem.Tag;
 				foreach (IIssueAction action in issue.GetActions())
 				{
-					ActionMenuItem menu = new ActionMenuItem(issue, action);
-					menu.Click += new EventHandler(RefreshContents);
+					var menu = new ActionMenuItem(issue, action);
+					menu.Click += RefreshContents;
 					_contextMenu.Items.Add(menu);
 				}
 			}
 		}
 
-		void RefreshContents(object sender, EventArgs e)
+		private void RefreshContents(object sender, EventArgs e)
 		{
 			_viewControl.Refresh();
 		}
 
-		ListViewItem _currentItem = null;
+		private ListViewItem _currentItem;
 
 		private void listView_MouseDown(object sender, MouseEventArgs e)
 		{
@@ -206,40 +215,45 @@ namespace JiraSVN.Plugin.UI
 				ListViewHitTestInfo hit = _listView.HitTest(e.Location);
 				_currentItem = hit.Item;
 
-				this.viewIssueToolStripMenuItem.Enabled = _currentItem != null;
+				viewIssueToolStripMenuItem.Enabled = _currentItem != null;
 				//_listView.ContextMenuStrip = (_currentItem == null) ? null : _listView.ContextMenuStrip = _contextMenu;
 			}
 		}
 		#endregion
 
-        private void showTimeTrackingToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            _worklogGroup.Visible = ((ToolStripMenuItem)sender).Checked;
-        }
+		private void showTimeTrackingToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			_worklogGroup.Visible = ((ToolStripMenuItem)sender).Checked;
+		}
 
-        private void hideToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (showTimeTrackingToolStripMenuItem.Checked)
-                showTimeTrackingToolStripMenuItem.PerformClick();
-        }
+		private void _search_TextChanged(object sender, EventArgs e)
+		{
+			//stop and start the timer
+			_textChangedtimer.Stop();
+			_textChangedtimer.Start();
+		}
 
-        private void _search_TextChanged(object sender, EventArgs e)
-        {
-            //stop and start the timer
-            _textChangedtimer.Stop();
-            _textChangedtimer.Start();
-        }
+		private void _textChangedtimer_Tick(object sender, EventArgs e)
+		{
+			//force a binding
+			foreach (Binding binding in _search.DataBindings)
+				binding.WriteValue();
 
-        void _textChangedtimer_Tick(object sender, EventArgs e)
-        {
-            //force a binding
-            foreach (Binding binding in _search.DataBindings)
-                binding.WriteValue();
+			//dont execute this again
+			_textChangedtimer.Stop();
+		}
 
-            //dont execute this again
-            _textChangedtimer.Stop();
-        }
-
+		private void okButton_Click(object sender, EventArgs e)
+		{
+			if (!string.IsNullOrEmpty(_worklog.Text))
+			{
+				if (!_worklog.Text.Contains("h") && !_worklog.Text.Contains("H"))
+				{
+					MessageBox.Show( 
+						"You must enter the hours as 'h' e.g. 4h, otherwise Jira does not update the time!", "Jira Tortoise Plugin", MessageBoxButtons.OK);
+					DialogResult = DialogResult.None;
+				}
+			}
+		}
 	}
 }
-

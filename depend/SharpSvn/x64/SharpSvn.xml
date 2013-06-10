@@ -32,6 +32,10 @@ and/or unversioned items. If Force is set such items will be deleted.</summary>
         <member name="T:SharpSvn.SvnMergesMergedArgs">
             <threadsafety static="true" instance="false" />
         </member>
+        <member name="T:SharpSvn.SvnWorkingCopyRestoreArgs">
+            <summary>Extended Parameter container of <see cref="M:SharpSvn.SvnWorkingCopyClient.Restore(System.String,SharpSvn.SvnWorkingCopyRestoreArgs)" />.</summary>
+            <threadsafety static="true" instance="false" />
+        </member>
         <member name="P:SharpSvn.SvnAddArgs.AddParents">
             <summary>
 If TRUE, recurse up path's directory and look for
@@ -115,10 +119,6 @@ externals definitions as part of this operation.</summary>
             <summary>Extended Parameter container of <see cref="T:SharpSvn.SvnRepositoryClient" />'s RecoverRepository method</summary>
             <threadsafety static="true" instance="false" />
         </member>
-        <member name="T:SharpSvn.SvnRelocateArgs">
-            <summary>Extended Parameter container of <see cref="M:SharpSvn.SvnClient.Relocate(System.String,System.Uri,System.Uri,SharpSvn.SvnRelocateArgs)" /></summary>
-            <threadsafety static="true" instance="false" />
-        </member>
         <member name="T:SharpSvn.SvnCreateDirectoryArgs">
             <summary>Extended Parameter container of <see cref="M:SharpSvn.SvnClient.CreateDirectory(System.String,SharpSvn.SvnCreateDirectoryArgs)" /> and <see cref="M:SharpSvn.SvnClient.RemoteCreateDirectory(System.Uri,SharpSvn.SvnCreateDirectoryArgs)" /></summary>
             <threadsafety static="true" instance="false" />
@@ -174,12 +174,23 @@ externals definitions as part of this operation.</summary>
             <summary>Extended Parameter container of <see cref="M:SharpSvn.SvnClient.Resolved(System.String)" /></summary>
             <threadsafety static="true" instance="false" />
         </member>
+        <member name="T:SharpSvn.SvnRelocateArgs">
+            <summary>Extended Parameter container of <see cref="M:SharpSvn.SvnClient.Relocate(System.String,System.Uri,System.Uri,SharpSvn.SvnRelocateArgs)" /></summary>
+            <threadsafety static="true" instance="false" />
+        </member>
         <member name="T:SharpSvn.SvnLockArgs">
             <summary>Extended Parameter container of <see cref="M:SharpSvn.SvnClient.Lock(System.String,SharpSvn.SvnLockArgs)" /></summary>
             <threadsafety static="true" instance="false" />
         </member>
         <member name="T:SharpSvn.SvnLookWriteArgs">
             <summary>Extended Parameter container of <see cref="T:SharpSvn.SvnLookClient" />'s Write method</summary>
+            <threadsafety static="true" instance="false" />
+        </member>
+        <member name="P:SharpSvn.SvnWorkingCopyMoveArgs.MetaDataOnly">
+            <summary>Only perform a metadata update and leave the working copy as-is</summary>
+        </member>
+        <member name="T:SharpSvn.SvnWorkingCopyMoveArgs">
+            <summary>Extended Parameter container of <see cref="M:SharpSvn.SvnWorkingCopyClient.Move(System.String,System.String,SharpSvn.SvnWorkingCopyMoveArgs)" />.</summary>
             <threadsafety static="true" instance="false" />
         </member>
         <member name="T:SharpSvn.SvnRevisionPropertyListArgs">
@@ -190,6 +201,94 @@ externals definitions as part of this operation.</summary>
             <summary>Extended Parameter container of <see cref="M:SharpSvn.SvnClient.Write(SharpSvn.SvnTarget,System.IO.Stream,SharpSvn.SvnWriteArgs)" /></summary>
             <threadsafety static="true" instance="false" />
         </member>
+        <member name="M:svn_cache_config_set(svn_cache_config_t!System.Runtime.CompilerServices.IsConst*)">
+Set the cache configuration. Please note that it may not change
+   the actual configuration *in use*. Therefore, call it before reading
+   data from any repo and call it only once.
+
+   This function is not thread-safe. Therefore, it should be called
+   from the processes' initialization code only.
+
+   @since New in 1.7.
+
+</member>
+        <member name="M:svn_cache_config_get">
+Get the current cache configuration. If it has not been set,
+   this function will return the default settings.
+
+   @since New in 1.7.
+
+</member>
+        <member name="F:svn_cache_config_t.single_threaded">
+is this application guaranteed to be single-threaded? 
+</member>
+        <member name="F:svn_cache_config_t.file_handle_count">
+maximum number of files kept open 
+</member>
+        <member name="F:svn_cache_config_t.cache_size">
+total cache size in bytes. Please note that this is only soft limit
+     to the total application memory usage and will be exceeded due to
+     temporary objects and other program state.
+     May be 0, resulting in default caching code being used. 
+</member>
+        <member name="T:svn_cache_config_t">
+ @copyright
+ ====================================================================
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.
+ ====================================================================
+ @endcopyright
+
+ @file svn_cache_config.h
+ @brief Configuration interface to internal Subversion caches.
+
+ @copyright
+ ====================================================================
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.
+ ====================================================================
+ @endcopyright
+
+ @file svn_types.h
+ @brief Subversion's data types
+
+@defgroup svn_fs_cache_config caching configuration
+ * @{
+ * @since New in 1.7. 
+Cache resource settings. It controls what caches, in what size and
+   how they will be created. The settings apply for the whole process.
+
+   @since New in 1.7.
+
+</member>
         <member name="P:SharpSvn.SvnRemoveFromChangeListArgs.ChangeLists">
             <summary>Gets the list of changelist-names</summary>
         </member>
@@ -577,6 +676,9 @@ target's properties).</para>
             <summary>Extended parameter container for <see cref="T:SharpSvn.SvnClient" />Cleanup</summary>
             <threadsafety static="true" instance="false" />
         </member>
+        <member name="P:SharpSvn.SvnCreateRepositoryArgs.RepositoryUuid">
+            <summary>If not <c>null</c> allows creates a repository with this UUID</summary>
+        </member>
         <member name="T:SharpSvn.SvnCreateRepositoryArgs">
             <summary>Extended Parameter container of <see cref="T:SharpSvn.SvnRepositoryClient" />'s CreateRepository method</summary>
             <threadsafety static="true" instance="false" />
@@ -839,6 +941,12 @@ verification data is available.</summary>
 <see cref="M:SharpSvn.SvnClient.RemoteMove(System.Uri,System.Uri,SharpSvn.SvnMoveArgs)" /></summary>
             <threadsafety static="true" instance="false" />
         </member>
+        <member name="M:serf_ssl_use_compression(serf_ssl_context_t*,System.Int32)">
+Enable or disable SSL compression on a SSL session.
+@a enabled = 1 to enable compression, 0 to disable compression.
+Default = disabled.
+
+</member>
         <member name="M:serf_ssl_trust_cert(serf_ssl_context_t*,serf_ssl_certificate_t*)">
 Adds the certificate @a cert to the list of trusted certificates in 
 @a ssl_ctx that will be used for verification. 
@@ -881,6 +989,11 @@ Allow SNI indicators to be sent to the server.
 </member>
         <member name="M:serf_ssl_use_default_certificates(serf_ssl_context_t*)">
 Use the default root CA certificates as included with the OpenSSL library.
+
+</member>
+        <member name="M:serf_ssl_server_cert_chain_callback_set(serf_ssl_context_t*,=FUNC:System.Int32(System.Void*,System.Int32,serf_ssl_certificate_t!System.Runtime.CompilerServices.IsConst*),=FUNC:System.Int32(System.Void*,System.Int32,System.Int32,serf_ssl_certificate_t!System.Runtime.CompilerServices.IsConst*!System.Runtime.CompilerServices.IsConst*,System.UInt64),System.Void*)">
+Set callbacks to override the default SSL server certificate validation 
+algorithm for the current certificate or the entire certificate chain. 
 
 </member>
         <member name="M:serf_ssl_server_cert_callback_set(serf_ssl_context_t*,=FUNC:System.Int32(System.Void*,System.Int32,serf_ssl_certificate_t!System.Runtime.CompilerServices.IsConst*),System.Void*)">
@@ -1032,6 +1145,13 @@ root of the remote host, without the closing '/'.
             <summary>Extended Parameter container of <see cref="T:SharpSvn.SvnRepositoryClient" />'s CreateRepository method</summary>
             <threadsafety static="true" instance="false" />
         </member>
+        <member name="P:SharpSvn.SvnWorkingCopyCopyArgs.MetaDataOnly">
+            <summary>Only perform a metadata update and leave the working copy as-is</summary>
+        </member>
+        <member name="T:SharpSvn.SvnWorkingCopyCopyArgs">
+            <summary>Extended Parameter container of <see cref="M:SharpSvn.SvnWorkingCopyClient.Copy(System.String,System.String,SharpSvn.SvnWorkingCopyCopyArgs)" />.</summary>
+            <threadsafety static="true" instance="false" />
+        </member>
         <member name="T:SharpSvn.SvnGetAppliedMergeInfoArgs">
             <summary>Extended Parameter container of <see cref="T:SharpSvn.SvnClient" />'s GetAppliedMergeInfo method</summary>
             <threadsafety static="true" instance="false" />
@@ -1039,6 +1159,9 @@ root of the remote host, without the closing '/'.
         <member name="T:SharpSvn.SvnImportArgs">
             <summary>Extended Parameter container of <see cref="M:SharpSvn.SvnClient.Import(System.String,System.Uri,SharpSvn.SvnImportArgs)" /> and <see cref="M:SharpSvn.SvnClient.RemoteImport(System.String,System.Uri,SharpSvn.SvnImportArgs)" /></summary>
             <threadsafety static="true" instance="false" />
+        </member>
+        <member name="P:SharpSvn.SvnImportFilterEventArgs.Filter">
+            <summary>True to filter this node, false to allow importing it</summary>
         </member>
         <member name="P:SharpSvn.SvnCheckOutArgs.AllowObstructions">
             <summary>Gets or sets the AllowObsstructions value</summary>
@@ -1427,7 +1550,7 @@ allocations.
  SVN_ERR_WC_PATH_NOT_FOUND.
  
 </member>
-        <member name="M:svn_wc__node_get_origin(System.Int32*,System.Int32!System.Runtime.CompilerServices.IsLong*,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst**,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst**,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst**,svn_wc_context_t*,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst*,System.Int32,apr_pool_t*,apr_pool_t*)">
+        <member name="M:svn_wc__node_get_origin(System.Int32*,System.Int32!System.Runtime.CompilerServices.IsLong*,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst**,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst**,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst**,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst**,svn_wc_context_t*,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst*,System.Int32,apr_pool_t*,apr_pool_t*)">
  Retrieves the origin of the node as it is known in the repository. For
  added nodes this retrieves where the node is copied from, and the repository
  location for other nodes.
@@ -1439,6 +1562,12 @@ allocations.
 
  If not NULL, sets @a revision, @a repos_relpath, @a repos_root_url and
  @a repos_uuid to the original (if a copy) or their current values.
+
+ If @a copy_root_abspath is not NULL, and @a *is_copy indicates that the
+ node was copied, set @a *copy_root_abspath to the local absolute path of
+ the root of the copied subtree containing the node. If the copied node is
+ a root by itself, @a *copy_root_abspath will match @a local_abspath (but
+ won't necessarily point to the same string in memory).
 
  If @a scan_deleted is TRUE, determine the origin of the deleted node. If
  @a scan_deleted is FALSE, return NULL, SVN_INVALID_REVNUM or FALSE for
@@ -1748,7 +1877,8 @@ out of date
             <summary>Subversion UserNameHandler file backend (managed representation)</summary>
         </member>
         <member name="P:SharpSvn.Security.SvnAuthentication.DefaultCredentials">
-            <summary>Simple credential handler to provide a static credential</summary>
+            <summary>Simple credential handler to provide a static credential via <see cref="E:SharpSvn.Security.SvnAuthentication.UserNameHandlers" /> and <see cref="E:SharpSvn.Security.SvnAuthentication.UserNamePasswordHandlers" />.
+Use <see cref="M:SharpSvn.Security.SvnAuthentication.ForceCredentials(System.String,System.String)" /> to override cached credentials.</summary>
             <remarks>When set implements a <see cref="E:SharpSvn.Security.SvnAuthentication.UserNameHandlers" /> and <see cref="E:SharpSvn.Security.SvnAuthentication.UserNamePasswordHandlers" />
 instance over the specified credential instance</remarks>
         </member>
@@ -2075,6 +2205,24 @@ is experimental
             <summary>Base Extended Parameter container of <see cref="T:SharpSvn.SvnLookClient" /> commands</summary>
             <threadsafety static="true" instance="false" />
         </member>
+        <member name="M:SharpSvn.SvnWorkingCopyClient.Restore(System.String,SharpSvn.SvnWorkingCopyRestoreArgs)">
+            <summary>Restores a missing node</summary>
+        </member>
+        <member name="M:SharpSvn.SvnWorkingCopyClient.Restore(System.String)">
+            <summary>Restores a missing node</summary>
+        </member>
+        <member name="M:SharpSvn.SvnWorkingCopyClient.Copy(System.String,System.String,SharpSvn.SvnWorkingCopyCopyArgs)">
+            <summary>Copies a node to a different path</summary>
+        </member>
+        <member name="M:SharpSvn.SvnWorkingCopyClient.Copy(System.String,System.String)">
+            <summary>Copies a node to a different path</summary>
+        </member>
+        <member name="M:SharpSvn.SvnWorkingCopyClient.Move(System.String,System.String,SharpSvn.SvnWorkingCopyMoveArgs)">
+            <summary>Moves a node to a different path</summary>
+        </member>
+        <member name="M:SharpSvn.SvnWorkingCopyClient.Move(System.String,System.String)">
+            <summary>Moves a node to a different path</summary>
+        </member>
         <member name="M:SharpSvn.SvnWorkingCopyClient.GetVersion(System.String,SharpSvn.SvnGetWorkingCopyVersionArgs,SharpSvn.SvnWorkingCopyVersion@)">
             <summary>Gets the working copy version (<c>svnversion</c>)</summary>
         </member>
@@ -2116,6 +2264,43 @@ routine to open its @a path and read the @c SVN_WC_ENTRY_THIS_DIR structure, or 
         </member>
         <member name="M:SharpSvn.SvnWorkingCopyClient.GetState(System.String,SharpSvn.SvnWorkingCopyState@)">
             <summary>Gets the text file status of a working copy path</summary>
+        </member>
+        <member name="M:SharpSvn.SvnWorkingCopyClient.OnProcessing(SharpSvn.SvnProcessingEventArgs)">
+            <summary>Raises the <see cref="E:SharpSvn.SvnWorkingCopyClient.Processing" /> event.</summary>
+        </member>
+        <member name="M:SharpSvn.SvnWorkingCopyClient.OnSvnError(SharpSvn.SvnErrorEventArgs)">
+            <summary>Raises the <see cref="T:System.Exception" /> event.</summary>
+        </member>
+        <member name="M:SharpSvn.SvnWorkingCopyClient.OnNotify(SharpSvn.SvnNotifyEventArgs)">
+            <summary>Raises the <see cref="E:SharpSvn.SvnWorkingCopyClient.Notify" /> event.</summary>
+        </member>
+        <member name="M:SharpSvn.SvnWorkingCopyClient.OnCancel(SharpSvn.SvnCancelEventArgs)">
+            <summary>Raises the <see cref="E:SharpSvn.SvnWorkingCopyClient.Cancel" /> event.</summary>
+        </member>
+        <member name="E:SharpSvn.SvnWorkingCopyClient.Processing">
+            <summary>
+Raised just before a command is executed. This allows a listener
+to cleanup before a new command is started
+</summary>
+        </member>
+        <member name="E:SharpSvn.SvnWorkingCopyClient.SvnError">
+            <summary>
+Raised when a subversion exception occurs.
+Set <see cref="P:SharpSvn.SvnCancelEventArgs.Cancel" /> to true to cancel
+throwing the exception
+</summary>
+        </member>
+        <member name="E:SharpSvn.SvnWorkingCopyClient.Notify">
+            <summary>
+Raised on notifications. The event is first
+raised on the <see cref="T:SharpSvn.SvnClientArgs" /> object and
+then on the <see cref="T:SharpSvn.SvnClient" /></summary>
+        </member>
+        <member name="E:SharpSvn.SvnWorkingCopyClient.Cancel">
+            <summary>
+Raised to allow canceling operations. The event is first
+raised on the <see cref="T:SharpSvn.SvnClientArgs" /> object and
+then on the <see cref="T:SharpSvn.SvnClient" /></summary>
         </member>
         <member name="E:SharpSvn.SvnRepositoryClient.Cancel">
             <summary>
@@ -3364,6 +3549,9 @@ the managed resource handler</remarks>
         <member name="P:SharpSvn.SvnClientConfiguration.GlobalIgnorePattern">
             <summary>Gets the subversion global ignore pattern as specified in the configuration</summary>
         </member>
+        <member name="P:SharpSvn.SvnClientConfiguration.KeepAllExtensionsOnConflict">
+            <summary>Gets or sets a value indicating whether the 'preserved-conflict-file-exts' should be forced to '*'</summary>
+        </member>
         <member name="P:SharpSvn.SvnClientConfiguration.UseSubversionDiff">
             <summary>Gets or sets a boolean indicating whether to always use the subversion integrated diff library
 instead of the user configured diff tools</summary>
@@ -3626,12 +3814,24 @@ normal</summary>
         <member name="M:SharpSvn.SvnLoggingEventArgs.GetHashCode">
             <summary>Serves as a hashcode for the specified type</summary>
         </member>
+        <member name="P:SharpSvn.SvnLoggingEventArgs.SubtractiveMerge">
+            <summary>MergeInfo only: Subtractive merge</summary>
+        </member>
+        <member name="P:SharpSvn.SvnLoggingEventArgs.NotInheritable">
+            <summary>MergeInfo only: Not inheritable</summary>
+        </member>
         <member name="P:SharpSvn.SvnLoggingEventArgs.RevisionProperties">
             <summary>Gets the list of custom properties retrieved with the log</summary>
             <remarks>Properties must be listed in SvnLogArgs.RetrieveProperties to be available here</remarks>
         </member>
         <member name="M:SharpSvn.SvnChangeItem.GetHashCode">
             <summary>Serves as a hashcode for the specified type</summary>
+        </member>
+        <member name="P:SharpSvn.SvnChangeItem.PropertiesModified">
+            <summary>Gets a boolean indicating whether the versioned properties of a node are modified in this revision. (Value only available for 1.7+ servers)</summary>
+        </member>
+        <member name="P:SharpSvn.SvnChangeItem.ContentModified">
+            <summary>Gets a boolean indicating whether the content of a node is modified in this revision. (Value only available for 1.7+ servers)</summary>
         </member>
         <member name="P:SharpSvn.SvnChangeItem.NodeKind">
             <summary>Gets the node kind of the changed path (Only available when committed to a 1.6+ repository)</summary>
@@ -3962,6 +4162,9 @@ specifies a <see cref="T:SharpSvn.SvnPathTarget" /></summary>
 Converts a local relative path to a valid relative Uri
 </summary>
         </member>
+        <member name="M:SharpSvn.SvnTools.LocalPathToUri(System.String,System.Boolean)">
+            <summary>Gets a file:// style uri for the specified local path</summary>
+        </member>
         <member name="M:SharpSvn.SvnTools.UriPartToPath(System.String)">
             <summary>
 Converts a string from a Uri path to a local path name; unescaping when necessary
@@ -3974,7 +4177,7 @@ Appends the specified path suffix to the given Uri
         </member>
         <member name="M:SharpSvn.SvnTools.IsAbsolutePath(System.String)">
             <summary>
-Checks whether the specified path is an absolute path
+Checks whether the specified path is an absolute path that doesn't end in an unneeded '\'
 </summary>
         </member>
         <member name="M:SharpSvn.SvnTools.GetNormalizedUri(System.Uri)">
@@ -26835,6 +27038,11 @@ files or subdirectories not already present
   Looks up a localized string similar to '{0}' locked by user '{1}'..
 </summary>
         </member>
+        <member name="P:SharpSvn.SharpSvnStrings.NotifyUpdateStartedX">
+            <summary>
+  Looks up a localized string similar to Updating '{0}':.
+</summary>
+        </member>
         <member name="P:SharpSvn.SharpSvnStrings.NotifyUpdatedToRevisionX">
             <summary>
   Looks up a localized string similar to Updated to revision {0}..
@@ -26855,14 +27063,29 @@ files or subdirectories not already present
   Looks up a localized string similar to Status against revision: {0}.
 </summary>
         </member>
-        <member name="P:SharpSvn.SharpSvnStrings.NotifySkippedMissingX">
+        <member name="P:SharpSvn.SharpSvnStrings.NotifySkippedXRemainsInConflict">
             <summary>
-  Looks up a localized string similar to Skipped missing '{0}'.
+  Looks up a localized string similar to Skipped '{0}' - Node remains in conflict.
+</summary>
+        </member>
+        <member name="P:SharpSvn.SharpSvnStrings.NotifySkippedX">
+            <summary>
+  Looks up a localized string similar to Skipped '{0}'.
+</summary>
+        </member>
+        <member name="P:SharpSvn.SharpSvnStrings.NotifySkippedObstructionX">
+            <summary>
+  Looks up a localized string similar to Skipped '{0}' - An obstructing working copy found.
 </summary>
         </member>
         <member name="P:SharpSvn.SharpSvnStrings.NotifySkippedMissingTargetX">
             <summary>
   Looks up a localized string similar to Skipped missing target '{0}'.
+</summary>
+        </member>
+        <member name="P:SharpSvn.SharpSvnStrings.NotifySkippedAccessDeniedX">
+            <summary>
+  Looks up a localized string similar to Skipped '{0}' - Access denied.
 </summary>
         </member>
         <member name="P:SharpSvn.SharpSvnStrings.NotifyRevertedX">
@@ -26928,6 +27151,11 @@ files or subdirectories not already present
         <member name="P:SharpSvn.SharpSvnStrings.NotifyFailedToRevertX">
             <summary>
   Looks up a localized string similar to Failed to revert '{0}' -- try updating instead.
+</summary>
+        </member>
+        <member name="P:SharpSvn.SharpSvnStrings.NotifyExternalXRemoved">
+            <summary>
+  Looks up a localized string similar to Removed external '{0}'.
 </summary>
         </member>
         <member name="P:SharpSvn.SharpSvnStrings.NotifyExternalAtRevisionX">
@@ -44567,7 +44795,8 @@ automatically, same as apr_terminate
 </member>
         <member name="M:apr_terminate">
 Tear down any APR internal data structures which aren't torn down 
-automatically.
+automatically. apr_terminate must be called once for every call to
+apr_initialize() or apr_app_initialize().
 @remark An APR program must call this function at termination once it 
         has stopped using APR services.  The APR developers suggest using
         atexit to ensure this is called.  When using APR from a language
@@ -44613,7 +44842,8 @@ Helper macro for APR_STRINGIFY
 @{
 
 Setup any APR internal data structures.  This MUST be the first function 
-called for any APR library.
+called for any APR library. It is safe to call apr_initialize several
+times as long as apr_terminate is called the same number of times.
 @remark See apr_app_initialize if this is an application, rather than
 a library consumer of apr.
 
@@ -45056,8 +45286,92 @@ Type for specifying an error or status code.
         <!-- Discarding badly formed XML document comment for member 'T:svn_wc_schedule_t'. -->
         <!-- Discarding badly formed XML document comment for member 'F:svn_diff_fns2_t.token_compare'. -->
         <!-- Discarding badly formed XML document comment for member 'T:svn_diff_hunk_t'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:apr_pool_t'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:apr_allocator_t'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:iovec'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:apr_table_overlap(apr_table_t*,apr_table_t!System.Runtime.CompilerServices.IsConst*,System.UInt32)'. -->
+        <!-- Discarding badly formed XML document comment for member 'D:apr_fileattrs_t'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:svn_node_kind_to_word(svn_node_kind_t)'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:svn_depth_to_word(svn_depth_t)'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:svn_commit_info_t'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:svn_lock_t'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:svn_io_open_uniquely_named(apr_file_t**,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst**,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst*,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst*,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst*,svn_io_file_del_t,apr_pool_t*,apr_pool_t*)'. -->
+        <!-- Discarding badly formed XML document comment for member 'F:svn_txdelta_source'. -->
+        <!-- Discarding badly formed XML document comment for member 'F:svn_txdelta_target'. -->
+        <!-- Discarding badly formed XML document comment for member 'F:svn_txdelta_new'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:svn_txdelta_read_svndiff_window(svn_txdelta_window_t**,svn_stream_t*,System.Int32,apr_pool_t*)'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:svn_txdelta_skip_svndiff_window(apr_file_t*,System.Int32,apr_pool_t*)'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:svn_auth_get_platform_specific_provider(svn_auth_provider_object_t**,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst*,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst*,apr_pool_t*)'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:svn_inheritance_to_word(svn_mergeinfo_inheritance_t)'. -->
+        <!-- Discarding badly formed XML document comment for member 'F:svn_ra_reporter3_t.abort_report'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:svn_wc_schedule_t'. -->
+        <!-- Discarding badly formed XML document comment for member 'F:svn_diff_fns2_t.token_compare'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:svn_diff_hunk_t'. -->
         <!-- Discarding badly formed XML document comment for member 'T:apr_mmap_t'. -->
         <!-- Discarding badly formed XML document comment for member 'M:serf_bucket_socket_set_read_progress_cb(serf_bucket_t*,=FUNC:System.Void(System.Void*,System.Int64,System.Int64),System.Void*)'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:apr_pool_t'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:apr_allocator_t'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:iovec'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:apr_table_overlap(apr_table_t*,apr_table_t!System.Runtime.CompilerServices.IsConst*,System.UInt32)'. -->
+        <!-- Discarding badly formed XML document comment for member 'D:apr_fileattrs_t'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:svn_node_kind_to_word(svn_node_kind_t)'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:svn_depth_to_word(svn_depth_t)'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:svn_commit_info_t'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:svn_lock_t'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:svn_io_open_uniquely_named(apr_file_t**,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst**,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst*,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst*,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst*,svn_io_file_del_t,apr_pool_t*,apr_pool_t*)'. -->
+        <!-- Discarding badly formed XML document comment for member 'F:svn_txdelta_source'. -->
+        <!-- Discarding badly formed XML document comment for member 'F:svn_txdelta_target'. -->
+        <!-- Discarding badly formed XML document comment for member 'F:svn_txdelta_new'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:svn_txdelta_read_svndiff_window(svn_txdelta_window_t**,svn_stream_t*,System.Int32,apr_pool_t*)'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:svn_txdelta_skip_svndiff_window(apr_file_t*,System.Int32,apr_pool_t*)'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:svn_auth_get_platform_specific_provider(svn_auth_provider_object_t**,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst*,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst*,apr_pool_t*)'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:svn_inheritance_to_word(svn_mergeinfo_inheritance_t)'. -->
+        <!-- Discarding badly formed XML document comment for member 'F:svn_ra_reporter3_t.abort_report'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:svn_wc_schedule_t'. -->
+        <!-- Discarding badly formed XML document comment for member 'F:svn_diff_fns2_t.token_compare'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:svn_diff_hunk_t'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:apr_pool_t'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:apr_allocator_t'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:iovec'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:apr_table_overlap(apr_table_t*,apr_table_t!System.Runtime.CompilerServices.IsConst*,System.UInt32)'. -->
+        <!-- Discarding badly formed XML document comment for member 'D:apr_fileattrs_t'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:svn_node_kind_to_word(svn_node_kind_t)'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:svn_depth_to_word(svn_depth_t)'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:svn_commit_info_t'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:svn_lock_t'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:svn_io_open_uniquely_named(apr_file_t**,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst**,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst*,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst*,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst*,svn_io_file_del_t,apr_pool_t*,apr_pool_t*)'. -->
+        <!-- Discarding badly formed XML document comment for member 'F:svn_txdelta_source'. -->
+        <!-- Discarding badly formed XML document comment for member 'F:svn_txdelta_target'. -->
+        <!-- Discarding badly formed XML document comment for member 'F:svn_txdelta_new'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:svn_txdelta_read_svndiff_window(svn_txdelta_window_t**,svn_stream_t*,System.Int32,apr_pool_t*)'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:svn_txdelta_skip_svndiff_window(apr_file_t*,System.Int32,apr_pool_t*)'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:svn_auth_get_platform_specific_provider(svn_auth_provider_object_t**,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst*,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst*,apr_pool_t*)'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:svn_inheritance_to_word(svn_mergeinfo_inheritance_t)'. -->
+        <!-- Discarding badly formed XML document comment for member 'F:svn_ra_reporter3_t.abort_report'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:svn_wc_schedule_t'. -->
+        <!-- Discarding badly formed XML document comment for member 'F:svn_diff_fns2_t.token_compare'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:svn_diff_hunk_t'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:apr_pool_t'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:apr_allocator_t'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:iovec'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:apr_table_overlap(apr_table_t*,apr_table_t!System.Runtime.CompilerServices.IsConst*,System.UInt32)'. -->
+        <!-- Discarding badly formed XML document comment for member 'D:apr_fileattrs_t'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:svn_node_kind_to_word(svn_node_kind_t)'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:svn_depth_to_word(svn_depth_t)'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:svn_commit_info_t'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:svn_lock_t'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:svn_io_open_uniquely_named(apr_file_t**,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst**,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst*,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst*,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst*,svn_io_file_del_t,apr_pool_t*,apr_pool_t*)'. -->
+        <!-- Discarding badly formed XML document comment for member 'F:svn_txdelta_source'. -->
+        <!-- Discarding badly formed XML document comment for member 'F:svn_txdelta_target'. -->
+        <!-- Discarding badly formed XML document comment for member 'F:svn_txdelta_new'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:svn_txdelta_read_svndiff_window(svn_txdelta_window_t**,svn_stream_t*,System.Int32,apr_pool_t*)'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:svn_txdelta_skip_svndiff_window(apr_file_t*,System.Int32,apr_pool_t*)'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:svn_auth_get_platform_specific_provider(svn_auth_provider_object_t**,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst*,System.SByte!System.Runtime.CompilerServices.IsSignUnspecifiedByte!System.Runtime.CompilerServices.IsConst*,apr_pool_t*)'. -->
+        <!-- Discarding badly formed XML document comment for member 'M:svn_inheritance_to_word(svn_mergeinfo_inheritance_t)'. -->
+        <!-- Discarding badly formed XML document comment for member 'F:svn_ra_reporter3_t.abort_report'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:svn_wc_schedule_t'. -->
+        <!-- Discarding badly formed XML document comment for member 'F:svn_diff_fns2_t.token_compare'. -->
+        <!-- Discarding badly formed XML document comment for member 'T:svn_diff_hunk_t'. -->
         <!-- Discarding badly formed XML document comment for member 'T:apr_pool_t'. -->
         <!-- Discarding badly formed XML document comment for member 'T:apr_allocator_t'. -->
         <!-- Discarding badly formed XML document comment for member 'T:iovec'. -->

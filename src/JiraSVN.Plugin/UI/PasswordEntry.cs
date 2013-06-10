@@ -12,18 +12,19 @@
  * limitations under the License.
  */
 #endregion
+
 using System;
 using System.Windows.Forms;
 
-namespace JiraSVN.Plugin
+namespace JiraSVN.Plugin.UI
 {
 	partial class PasswordEntry : Form
 	{
-		string _forWho, _forWhere;
+		private string _forWho;
+
 		public PasswordEntry(string forWho, string forWhere)
 		{
-			_forWho = forWho; 
-			_forWhere = forWhere;
+			_forWho = forWho;
 			InitializeComponent();
 
 			if (!String.IsNullOrEmpty(forWho))

@@ -13,12 +13,14 @@
  */
 #endregion
 
+using System.Runtime.InteropServices;
+
 namespace JiraSVN.Common.Interfaces
 {
 	/// <summary>
 	/// Represents an activity/action that can be performed on an issue
 	/// </summary>
-	[System.Runtime.InteropServices.ComVisible(false)]
+	[ComVisible(false)]
 	public interface IIssueAction : IIdentifiable
 	{
 	}

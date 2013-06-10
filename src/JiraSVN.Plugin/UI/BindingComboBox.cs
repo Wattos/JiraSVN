@@ -12,7 +12,9 @@
  * limitations under the License.
  */
 #endregion
+
 using System;
+using System.Collections;
 using System.Windows.Forms;
 
 namespace JiraSVN.Plugin.UI
@@ -28,11 +30,11 @@ namespace JiraSVN.Plugin.UI
 	/// complete setting the newly selected item prior to us being notified of the property
 	/// change.
 	/// </summary>
-	class BindingComboBox : ComboBox
+	internal class BindingComboBox : ComboBox
 	{
 		public BindingComboBox()
 		{
-			base.SelectedIndexChanged += new EventHandler(BindingComboBox_SelectedIndexChanged);
+			base.SelectedIndexChanged += BindingComboBox_SelectedIndexChanged;
 		}
 
 		public override int SelectedIndex
@@ -45,10 +47,10 @@ namespace JiraSVN.Plugin.UI
 			}
 		}
 
-		void BindingComboBox_SelectedIndexChanged(object sender, EventArgs e)
+		private void BindingComboBox_SelectedIndexChanged(object sender, EventArgs e)
 		{
-			if(IndexSelectedChanged != null)
-				this.BeginInvoke(IndexSelectedChanged, sender, e);
+			if (IndexSelectedChanged != null)
+				BeginInvoke(IndexSelectedChanged, sender, e);
 		}
 
 		public event EventHandler IndexSelectedChanged;
@@ -56,21 +58,11 @@ namespace JiraSVN.Plugin.UI
 		public int IndexSelected
 		{
 			get { return base.SelectedIndex; }
-			set 
+			set
 			{
 				if (value >= -1 && value < Items.Count)
 					base.SelectedIndex = value;
 			}
-		}
-
-		protected override void OnDataSourceChanged(EventArgs e)
-		{
-			base.OnDataSourceChanged(e);
-		}
-
-		protected override void SetItemsCore(System.Collections.IList value)
-		{
-			base.SetItemsCore(value);
 		}
 	}
 }

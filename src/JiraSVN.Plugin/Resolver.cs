@@ -12,55 +12,61 @@
  * limitations under the License.
  */
 #endregion
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading;
 
 namespace JiraSVN.Plugin
 {
-    static class Resolver
-    {
-        static int _hooked;
-        static Dictionary<string, Assembly> _assemblies = new Dictionary<string,Assembly>(StringComparer.Ordinal);
-        
-        public static void Hook()
-        {
-            if(0 == Interlocked.Exchange(ref _hooked, 1))
-                AppDomain.CurrentDomain.AssemblyResolve += ResolveAssembly;
-        }
+	internal static class Resolver
+	{
+		private static int _hooked;
 
-        static Assembly ResolveAssembly(object sender, ResolveEventArgs args)
-        {
-            lock (typeof(Resolver))
-            {
-                try
-                {
-                    Assembly loaded = null;
-                    if (_assemblies.TryGetValue(args.Name, out loaded))
-                        return loaded;
+		private static readonly Dictionary<string, Assembly> Assemblies =
+			new Dictionary<string, Assembly>(StringComparer.Ordinal);
 
-                    Log.Verbose("Resolving {0}", args.Name);
-                    AssemblyName name = new AssemblyName(args.Name);
-                    string path = Path.Combine(Path.GetDirectoryName(typeof(Resolver).Assembly.Location), name.Name + ".dll");
-                    if (File.Exists(path))
-                    {
-                        AssemblyName test = AssemblyName.GetAssemblyName(path);
-                        if (name == test)
-                            loaded = Assembly.LoadFile(path, AppDomain.CurrentDomain.Evidence);
-                        _assemblies[args.Name] = loaded;
-                    }
+		public static void Hook()
+		{
+			if (0 == Interlocked.Exchange(ref _hooked, 1))
+				AppDomain.CurrentDomain.AssemblyResolve += ResolveAssembly;
+		}
 
-                    Log.Info("Resolved {0} = ", path, loaded);
-                    return loaded;
-                }
-                catch(Exception e) 
-                {
-                    Log.Error(e);
-                    return null; 
-                }
-            }
-        }
-    }
+		private static Assembly ResolveAssembly(object sender, ResolveEventArgs args)
+		{
+			lock(typeof(Resolver))
+			{
+				try
+				{
+					Assembly loaded = null;
+					if (Assemblies.TryGetValue(args.Name, out loaded))
+						return loaded;
+
+					Log.Verbose("Resolving {0}", args.Name);
+					var name = new AssemblyName(args.Name);
+					var directoryName = Path.GetDirectoryName(typeof(Resolver).Assembly.Location);
+					Debug.Assert(directoryName != null, "directoryName != null");
+					string path = Path.Combine(directoryName, name.Name + ".dll");
+					if (File.Exists(path))
+					{
+						AssemblyName test = AssemblyName.GetAssemblyName(path);
+						if (name == test)
+							loaded = Assembly.LoadFile(path, AppDomain.CurrentDomain.Evidence);
+						Assemblies[args.Name] = loaded;
+					}
+
+					Log.Info("Resolved {0} = ", path, loaded);
+					return loaded;
+				}
+				catch (Exception e)
+				{
+					Log.Error(e);
+					return null;
+				}
+			}
+		}
+	}
 }

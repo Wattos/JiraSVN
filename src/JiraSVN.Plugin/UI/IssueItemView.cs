@@ -12,96 +12,97 @@
  * limitations under the License.
  */
 #endregion
+
 using System;
 using JiraSVN.Common.Interfaces;
 
 namespace JiraSVN.Plugin.UI
 {
-	class IssueItemView : IIssue
+	internal class IssueItemView : IIssue
 	{
-		readonly IssuesListView _view;
-		readonly IIssue Issue;
+		private readonly IssuesListView _view;
+		private readonly IIssue _issue;
 
-		public IssueItemView(IssuesListView view, IIssue issue) 
+		public IssueItemView(IssuesListView view, IIssue issue)
 		{
-			this._view = view;
-			this.Issue = issue; 
+			_view = view;
+			_issue = issue;
 		}
 
 		public bool Selected
 		{
-			get { return _view.IsSelected(this); } 
-			set { _view.Select(this, value); } 
+			get { return _view.IsSelected(this); }
+			set { _view.Select(this, value); }
 		}
 
 		public string Id
 		{
-			get { return Issue.Id; }
+			get { return _issue.Id; }
 		}
 
 		public string Name
 		{
-			get { return Issue.Name; }
+			get { return _issue.Name; }
 		}
 
 		public string DisplayId
 		{
-			get { return Issue.DisplayId; }
+			get { return _issue.DisplayId; }
 		}
 
 		public string FullDescription
 		{
-			get { return Issue.FullDescription; }
+			get { return _issue.FullDescription; }
 		}
 
 		public IIssueState CurrentState
 		{
-			get { return Issue.CurrentState; }
+			get { return _issue.CurrentState; }
 		}
 
 		public IIssueUser AssignedTo
 		{
-			get { return Issue.AssignedTo; }
+			get { return _issue.AssignedTo; }
 		}
 
 		public IIssueUser ReportedBy
 		{
-			get { return Issue.ReportedBy; }
+			get { return _issue.ReportedBy; }
 		}
 
 		public DateTime CreatedOn
 		{
-			get { return Issue.CreatedOn; }
+			get { return _issue.CreatedOn; }
 		}
 
 		public DateTime LastModifiedOn
 		{
-			get { return Issue.LastModifiedOn; }
+			get { return _issue.LastModifiedOn; }
 		}
 
 		public void View()
 		{
-			Issue.View();
+			_issue.View();
 		}
 
 		public void AddComment(string comment)
 		{
-			Issue.AddComment(comment);
+			_issue.AddComment(comment);
 		}
 
 		public IIssueAction[] GetActions()
 		{
-			return Issue.GetActions();
+			return _issue.GetActions();
 		}
 
 		public void ProcessAction(string comment, IIssueAction action, IIssueUser assignTo)
 		{
-			Issue.ProcessAction(comment, action, assignTo);
+			_issue.ProcessAction(comment, action, assignTo);
 		}
 
-	    public void ProcessWorklog(string timeSpent, TimeEstimateRecalcualationMethod method, string newTimeEstimate)
-	    {
-            Issue.ProcessWorklog(timeSpent, method, newTimeEstimate);
-	    }
+		public void ProcessWorklog(string timeSpent, TimeEstimateRecalcualationMethod method, string newTimeEstimate)
+		{
+			_issue.ProcessWorklog(timeSpent, method, newTimeEstimate);
+		}
 	}
 }
