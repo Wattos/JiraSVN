@@ -12,18 +12,20 @@
  * limitations under the License.
  */
 #endregion
+
 using System;
 using System.Collections.Generic;
+using CSharpTest.Net.Reflection;
 using JiraSVN.Common.Interfaces;
 using JiraSVN.Jira.Jira;
-using CSharpTest.Net.Reflection;
+
 
 namespace JiraSVN.Jira
 {
-	class JiraIssue : BaseIdentifiable<RemoteIssue>, IIssue
+	internal class JiraIssue : BaseIdentifiable<RemoteIssue>, IIssue
 	{
-		readonly IIssueUser _assignee, _reporter;
-		readonly JiraConnection _connection;
+		private readonly IIssueUser _assignee, _reporter;
+		private readonly JiraConnection _connection;
 
 		public JiraIssue(JiraConnection conn, RemoteIssue issue)
 			: base(issue, issue.id, issue.summary)
@@ -33,7 +35,10 @@ namespace JiraSVN.Jira
 			_reporter = _connection.GetUser(Object.reporter);
 		}
 
-		public string DisplayId { get { return Object.key; } }
+		public string DisplayId
+		{
+			get { return Object.key; }
+		}
 
 		public IIssueState CurrentState
 		{
@@ -42,17 +47,27 @@ namespace JiraSVN.Jira
 
 		public string FullDescription
 		{
-			get { return Object.description != null ? Object.description : String.Empty; }
+			get { return Object.description ?? String.Empty; }
 		}
 
 		public DateTime CreatedOn
 		{
-			get { return Object.created.Value; }
+			get
+			{
+				if (Object.created != null) 
+					return Object.created.Value;
+				return DateTime.Now;
+			}
 		}
 
 		public DateTime LastModifiedOn
 		{
-			get { return Object.updated.Value; }
+			get
+			{
+				if (Object.updated != null)
+					return Object.updated.Value;
+				return DateTime.Now;
+			}
 		}
 
 		public IIssueUser AssignedTo
@@ -77,6 +92,8 @@ namespace JiraSVN.Jira
 
 		public IIssueAction[] GetActions()
 		{
+			//this code is safer explicit co-variant conversion
+			//return _connection.GetActions(this).Select(x => (IIssueAction)x).ToArray();
 			return _connection.GetActions(this);
 		}
 
@@ -88,10 +105,10 @@ namespace JiraSVN.Jira
 			_connection.ProcessAction(this, action, assignTo);
 		}
 
-	    public void ProcessWorklog(string timeSpent, TimeEstimateRecalcualationMethod method, string newTimeEstimate)
-	    {
-            _connection.ProcessWorklog(this, timeSpent, method, newTimeEstimate);
-	    }
+		public void ProcessWorklog(string timeSpent, TimeEstimateRecalcualationMethod method, string newTimeEstimate)
+		{
+			_connection.ProcessWorklog(this, timeSpent, method, newTimeEstimate);
+		}
 
 		private string[] GetCustomFieldValue(string fieldName)
 		{
@@ -115,21 +132,19 @@ namespace JiraSVN.Jira
 			if (fieldName == "versions") fieldName = "affectsVersions";
 			if (fieldName == "attachment") fieldName = "attachmentNames";
 
-			PropertyValue property = new PropertyValue(this.Object, fieldName);
+			var property = new PropertyValue(Object, fieldName);
 			object oval = property.Value;
 			if (oval != null)
 			{
-				if (oval is AbstractRemoteEntity[])
+				var os = oval as AbstractRemoteEntity[];
+				if (os != null)
 				{
-					List<string> ids = new List<string>();
-					foreach (AbstractRemoteEntity o in ((AbstractRemoteEntity[])oval))
+					var ids = new List<string>();
+					foreach (AbstractRemoteEntity o in os)
 						ids.Add(o.id);
 					return ids.ToArray();
 				}
-				else
-				{
-					return new string[] { oval.ToString() };
-				}
+				return new[] {oval.ToString()};
 			}
 			return null;
 		}

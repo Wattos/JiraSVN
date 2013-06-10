@@ -12,31 +12,68 @@
  * limitations under the License.
  */
 #endregion
+
 using JiraSVN.Common.Interfaces;
 
 namespace JiraSVN.Plugin.UI
 {
-	class AllUsersFilter : IIssueUser
+	internal class AllUsersFilter : IIssueUser
 	{
 		public static readonly AllUsersFilter Instance = new AllUsersFilter();
-		public string Id { get { return this.GetType().FullName; } }
-		public string Name { get { return "[All]"; } }
-		public override string ToString() { return Name; }
+
+		public string Id
+		{
+			get { return GetType().FullName; }
+		}
+
+		public string Name
+		{
+			get { return "[All]"; }
+		}
+
+		public override string ToString()
+		{
+			return Name;
+		}
 	}
 
-	class ReportedByUser : IIssueUser
+	internal class ReportedByUser : IIssueUser
 	{
 		public static readonly ReportedByUser Instance = new ReportedByUser();
-		public string Id { get { return this.GetType().FullName; } }
-		public string Name { get { return "[Reporter]"; } }
-		public override string ToString() { return Name; }
+
+		public string Id
+		{
+			get { return GetType().FullName; }
+		}
+
+		public string Name
+		{
+			get { return "[Reporter]"; }
+		}
+
+		public override string ToString()
+		{
+			return Name;
+		}
 	}
 
-	class AllStatusFilter : IIssueState
+	internal class AllStatusFilter : IIssueState
 	{
 		public static readonly AllStatusFilter Instance = new AllStatusFilter();
-		public string Id { get { return this.GetType().FullName; } }
-		public string Name { get { return "[All]"; } }
-		public override string ToString() { return Name; }
+
+		public string Id
+		{
+			get { return GetType().FullName; }
+		}
+
+		public string Name
+		{
+			get { return "[All]"; }
+		}
+
+		public override string ToString()
+		{
+			return Name;
+		}
 	}
 }

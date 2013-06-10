@@ -12,14 +12,16 @@
  * limitations under the License.
  */
 #endregion
+
 using System;
+using System.Runtime.InteropServices;
 
 namespace JiraSVN.Common.Interfaces
 {
 	/// <summary>
 	/// Wraps an established connection to an issue tracking system
 	/// </summary>
-	[System.Runtime.InteropServices.ComVisible(false)]
+	[ComVisible(false)]
 	public interface IIssuesServiceConnection : IDisposable
 	{
 		/// <summary> Returns the current user </summary>

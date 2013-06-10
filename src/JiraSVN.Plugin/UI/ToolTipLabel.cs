@@ -12,67 +12,66 @@
  * limitations under the License.
  */
 #endregion
+
 using System;
 using System.Drawing;
 using System.Windows.Forms;
 
 namespace JiraSVN.Plugin.UI
 {
-	class ToolTipLabel : Label
+	internal class ToolTipLabel : Label
 	{
-		int _keepWidth;
-	
 		public ToolTipLabel()
 		{
-			this.BorderStyle = BorderStyle.FixedSingle;
-			this.BackColor = SystemColors.Info;
-			this.ForeColor = SystemColors.InfoText;
-			this.AutoSize = false;
-			this.Width = _keepWidth = 400;
-			this.Height = 150;
-			this.Visible = false;
+			BorderStyle = BorderStyle.FixedSingle;
+			BackColor = SystemColors.Info;
+			ForeColor = SystemColors.InfoText;
+			AutoSize = false;
+			Width = DisplayWidth = 400;
+			Height = 150;
+			Visible = false;
 		}
 
-		public int DisplayWidth { get { return _keepWidth; } set { _keepWidth = value; } }
+		public int DisplayWidth { get; set; }
 
 		public override string Text
 		{
-			get
-			{
-				return base.Text;
-			}
+			get { return base.Text; }
 			set
 			{
 				if (String.IsNullOrEmpty(value) || Parent == null)
 				{
 					base.Text = String.Empty;
-					this.Visible = false;
-					this.Parent.MouseLeave -= new EventHandler(Parent_MouseLeave);
+					Visible = false;
+					if (Parent != null) 
+						Parent.MouseLeave -= Parent_MouseLeave;
 				}
 				else
 				{
 					base.Text = value;
-					this.Parent.Controls.SetChildIndex(this, 0);
-					this.Parent.MouseLeave += new EventHandler(Parent_MouseLeave);
+					Parent.Controls.SetChildIndex(this, 0);
+					Parent.MouseLeave += Parent_MouseLeave;
 
-					SizeF size = this.Size;
+					SizeF size = Size;
 					try
 					{
-						using (Graphics g = Graphics.FromHwnd(this.Handle))
-							size = g.MeasureString(this.Text, this.Font, this.DisplayWidth);
+						using (Graphics g = Graphics.FromHwnd(Handle))
+							size = g.MeasureString(Text, Font, DisplayWidth);
 					}
-					catch { }
+					catch
+					{
+					}
 
-					this.Width = 4 + this.Margin.Horizontal + (int)size.Width;
-					this.Height = 4 + this.Margin.Vertical + (int)size.Height;
+					Width = 4 + Margin.Horizontal + (int)size.Width;
+					Height = 4 + Margin.Vertical + (int)size.Height;
 				}
 			}
 		}
 
-		void Parent_MouseLeave(object sender, EventArgs e)
+		private void Parent_MouseLeave(object sender, EventArgs e)
 		{
-			this.Visible = false;
-			this.Parent.MouseLeave -= new EventHandler(Parent_MouseLeave);
+			Visible = false;
+			Parent.MouseLeave -= Parent_MouseLeave;
 		}
 	}
 }

@@ -13,12 +13,14 @@
  */
 #endregion
 
+using System.Runtime.InteropServices;
+
 namespace JiraSVN.Common.Interfaces
 {
 	/// <summary>
 	/// Represents a group of displayable issues
 	/// </summary>
-	[System.Runtime.InteropServices.ComVisible(false)]
+	[ComVisible(false)]
 	public interface IIssueFilter : IIdentifiable
 	{
 		/// <summary>
@@ -30,12 +32,12 @@ namespace JiraSVN.Common.Interfaces
 	/// <summary>
 	/// Represents a group of displayable issues
 	/// </summary>
-	[System.Runtime.InteropServices.ComVisible(false)]
+	[ComVisible(false)]
 	public interface IIssueFilterWithSearch : IIssueFilter
 	{
 		/// <summary>
 		/// Returns the list of issues matching this filter/group
 		/// </summary>
-        IIssue[] GetIssues(string searchText, int offsett, int maxNumber);
+		IIssue[] GetIssues(string searchText, int offsett, int maxNumber);
 	}
 }

@@ -12,76 +12,76 @@
  * limitations under the License.
  */
 #endregion
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
-using JiraSVN.Common.Interfaces;
 using CSharpTest.Net.Reflection;
 using CSharpTest.Net.Serialization;
+using CSharpTest.Net.Serialization.StorageClasses;
+using JiraSVN.Common.Interfaces;
 
 namespace JiraSVN.Plugin.UI
 {
-	class IssuesListView : IDisposable, INotifyPropertyChanged
+	internal class IssuesListView : IDisposable, INotifyPropertyChanged
 	{
 		#region Loads of properties :(
+		private readonly ObjectSerializer _serializer;
+		private readonly INameValueStore _storage = new RegistryStorage();
+		private readonly IIssuesServiceConnection _service;
 
-		readonly ObjectSerializer _serializer;
-		readonly INameValueStore _storage = new CSharpTest.Net.Serialization.StorageClasses.RegistryStorage();
-		IIssuesServiceConnection _service;
+		private readonly Dictionary<string, bool> _selected = new Dictionary<string, bool>();
+		private readonly DataBindingList<IIssueFilter> _filters = new DataBindingList<IIssueFilter>(false);
+		private readonly DataBindingList<IIssueUser> _assignedFilter = new DataBindingList<IIssueUser>(true);
+		private readonly DataBindingList<IIssueState> _statusFilter = new DataBindingList<IIssueState>(true);
+		private string _textFilter = String.Empty, _lastTextFilter = String.Empty;
 
-		Dictionary<string, bool> _selected = new Dictionary<string, bool>();
-		DataBindingList<IIssueFilter> _filters = new DataBindingList<IIssueFilter>(false);
-		DataBindingList<IIssueUser> _assignedFilter = new DataBindingList<IIssueUser>(true);
-		DataBindingList<IIssueState> _statusFilter = new DataBindingList<IIssueState>(true);
-		string _textFilter = String.Empty, _lastTextFilter = String.Empty;
+		private IssueItemView[] _found = new IssueItemView[0];
+		private readonly DataBindingList<IssueItemView> _filtered = new DataBindingList<IssueItemView>(false);
+		private string _comments = String.Empty;
+		private string _lastCommentAppended = String.Empty;
 
-		IssueItemView[] _found = new IssueItemView[0];
-		DataBindingList<IssueItemView> _filtered = new DataBindingList<IssueItemView>(false);
-		string _comments = String.Empty;
-		string _lastCommentAppended = String.Empty;
+		private bool _doAction;
+		private readonly DataBindingList<IIssueAction> _actions = new DataBindingList<IIssueAction>(true);
 
-		bool _doAction = false;
-		DataBindingList<IIssueAction> _actions = new DataBindingList<IIssueAction>(true);
+		private bool _doAssign;
+		private readonly DataBindingList<IIssueUser> _assignees = new DataBindingList<IIssueUser>(true);
 
-		bool _doAssign = false;
-		DataBindingList<IIssueUser> _assignees = new DataBindingList<IIssueUser>(true);
-
-	    private bool _addWorklog;
-	    private string _timeSpent;
-	    private TimeEstimateRecalcualationMethod _timeEstimateRecalcualationMethod;
-	    private string _newTimeEstimate;
-
+		private bool _addWorklog;
+		private string _timeSpent;
+		private TimeEstimateRecalcualationMethod _timeEstimateRecalcualationMethod;
+		private string _newTimeEstimate;
 		#endregion
 
-		public IssuesListView(IIssuesServiceConnection service, string message, string[] files)
+		public IssuesListView(IIssuesServiceConnection service, string message)
 		{
-			PropertyChanged += new PropertyChangedEventHandler(DebugPropertyChanged);
+			PropertyChanged += DebugPropertyChanged;
 
 			_service = service;
 			_comments = message;
 
 			_filters.ReplaceContents(_service.GetFilters());
 
-			_assignees.AddRange(new IIssueUser[] { ReportedByUser.Instance, _service.CurrentUser });
+			_assignees.AddRange(new[] {ReportedByUser.Instance, _service.CurrentUser});
 			_assignees.AddRange(_service.GetUsers());
 
-			_serializer = new ObjectSerializer(this, 
-				"_filters.SelectedText",
-				"_assignedFilter.SelectedText",
-				"_statusFilter.SelectedText",
-				"_actions.SelectedText",
-				"_assignees.SelectedText"
+			_serializer = new ObjectSerializer(this,
+			                                   "_filters.SelectedText",
+			                                   "_assignedFilter.SelectedText",
+			                                   "_statusFilter.SelectedText",
+			                                   "_actions.SelectedText",
+			                                   "_assignees.SelectedText"
 				);
 			_serializer.ContinueOnError = true;
 			_serializer.Deserialize(_storage);
 
 			// if no filter is pre-selected, select the last one, as this is the search filter
-            // this increases the performance (no need to display all items)
-            if (_filters.SelectedIndex == -1 && _filters.Count > 0)
-                _filters.SelectedIndex = _filters.Count - 1; 
+			// this increases the performance (no need to display all items)
+			if (_filters.SelectedIndex == -1 && _filters.Count > 0)
+				_filters.SelectedIndex = _filters.Count - 1;
 
-            ServerFilterChanged(String.Empty);
+			ServerFilterChanged(String.Empty);
 		}
 
 		public void Dispose()
@@ -92,8 +92,10 @@ namespace JiraSVN.Plugin.UI
 		#region event PropertyChanged
 		public event PropertyChangedEventHandler PropertyChanged;
 
-		void DebugPropertyChanged(object sender, PropertyChangedEventArgs e)
-		{ Log.Verbose("Property {0} changed.", e.PropertyName); }
+		private void DebugPropertyChanged(object sender, PropertyChangedEventArgs e)
+		{
+			Log.Verbose("Property {0} changed.", e.PropertyName);
+		}
 
 		private void OnPropertyChanged(params string[] properties)
 		{
@@ -106,7 +108,7 @@ namespace JiraSVN.Plugin.UI
 		#endregion
 
 		#region Server/Client Filtering
-		void ServerFilterChanged(string propertyName)
+		private void ServerFilterChanged(string propertyName)
 		{
 			OnPropertyChanged(propertyName);
 
@@ -116,18 +118,21 @@ namespace JiraSVN.Plugin.UI
 			Refresh();
 		}
 
-		public void Refresh() { Refresh(true); }
+		public void Refresh()
+		{
+			Refresh(true);
+		}
 
 		public void Refresh(bool applyLocal)
 		{
 			IIssueFilter filter;
-			List<IssueItemView> found = new List<IssueItemView>();
+			var found = new List<IssueItemView>();
 
-			Dictionary<string, IIssueUser> distinct = new Dictionary<string, IIssueUser>();
-			Dictionary<string, IIssueUser> assigned = new Dictionary<string, IIssueUser>();
+			var distinct = new Dictionary<string, IIssueUser>();
+			var assigned = new Dictionary<string, IIssueUser>();
 			assigned[AllUsersFilter.Instance.Id] = AllUsersFilter.Instance;
 
-			Dictionary<string, IIssueState> statuses = new Dictionary<string, IIssueState>();
+			var statuses = new Dictionary<string, IIssueState>();
 			statuses[AllStatusFilter.Instance.Id] = AllStatusFilter.Instance;
 
 			if (_filters.TryGetSelection(out filter))
@@ -140,7 +145,7 @@ namespace JiraSVN.Plugin.UI
 
 				foreach (IIssue issue in items)
 				{
-					IssueItemView item = new IssueItemView(this, issue);
+					var item = new IssueItemView(this, issue);
 					found.Add(item);
 
 					distinct[item.AssignedTo.Id] = item.AssignedTo;
@@ -169,11 +174,11 @@ namespace JiraSVN.Plugin.UI
 					OnPropertyChanged("SelectedStatusFilter");
 			}
 
-			if(applyLocal)
+			if (applyLocal)
 				LocalFilterChanged();
 		}
 
-		void CheckIfFilterChanged(string propertyName)
+		private void CheckIfFilterChanged(string propertyName)
 		{
 			OnPropertyChanged(propertyName);
 			if (_statusFilter.IsSelectionDirty || _assignedFilter.IsSelectionDirty || _lastTextFilter != _textFilter)
@@ -183,13 +188,13 @@ namespace JiraSVN.Plugin.UI
 			}
 		}
 
-		void LocalFilterChanged()
+		private void LocalFilterChanged()
 		{
 			_statusFilter.ClearSelectionDirty();
 			_assignedFilter.ClearSelectionDirty();
 			_lastTextFilter = _textFilter;
 
-			List<IssueItemView> filtered = new List<IssueItemView>();
+			var filtered = new List<IssueItemView>();
 
 			IIssueFilter filter;
 			if (_filters.TryGetSelection(out filter) && filter is IIssueFilterWithSearch)
@@ -197,7 +202,7 @@ namespace JiraSVN.Plugin.UI
 
 			foreach (IssueItemView item in _found)
 			{
-				if(MatchesCurrentFilter(item))
+				if (MatchesCurrentFilter(item))
 					filtered.Add(item);
 			}
 
@@ -205,7 +210,7 @@ namespace JiraSVN.Plugin.UI
 			RebuildActions();
 		}
 
-		bool MatchesCurrentFilter(IssueItemView item)
+		private bool MatchesCurrentFilter(IssueItemView item)
 		{
 			IIssueUser byAssignee;
 			if (_assignedFilter.TryGetSelection(out byAssignee) && byAssignee.Id != AllUsersFilter.Instance.Id)
@@ -229,11 +234,11 @@ namespace JiraSVN.Plugin.UI
 					if (String.IsNullOrEmpty(phrase))
 						continue;
 					if (item.Name.IndexOf(phrase, StringComparison.InvariantCultureIgnoreCase) < 0 &&
-						item.DisplayId.IndexOf(phrase, StringComparison.InvariantCultureIgnoreCase) < 0 &&
-						item.FullDescription.IndexOf(phrase, StringComparison.InvariantCultureIgnoreCase) < 0 &&
-						item.CurrentState.Name.IndexOf(phrase, StringComparison.InvariantCultureIgnoreCase) < 0 &&
-						item.AssignedTo.Name.IndexOf(phrase, StringComparison.InvariantCultureIgnoreCase) < 0 &&
-						item.ReportedBy.Name.IndexOf(phrase, StringComparison.InvariantCultureIgnoreCase) < 0)
+					    item.DisplayId.IndexOf(phrase, StringComparison.InvariantCultureIgnoreCase) < 0 &&
+					    item.FullDescription.IndexOf(phrase, StringComparison.InvariantCultureIgnoreCase) < 0 &&
+					    item.CurrentState.Name.IndexOf(phrase, StringComparison.InvariantCultureIgnoreCase) < 0 &&
+					    item.AssignedTo.Name.IndexOf(phrase, StringComparison.InvariantCultureIgnoreCase) < 0 &&
+					    item.ReportedBy.Name.IndexOf(phrase, StringComparison.InvariantCultureIgnoreCase) < 0)
 						return false;
 				}
 			}
@@ -242,16 +247,19 @@ namespace JiraSVN.Plugin.UI
 		}
 		#endregion
 
-		public IBindingList<IssueItemView> FoundIssues { get { return _filtered; } }
+		public IBindingList<IssueItemView> FoundIssues
+		{
+			get { return _filtered; }
+		}
 
 		public IList<IIssue> SelectedIssues
 		{
 			get
 			{
-				List<IIssue> issues = new List<IIssue>();
+				var issues = new List<IIssue>();
 				foreach (IIssue issue in _filtered)
 				{
-					if (IsSelected(issue) == true)
+					if (IsSelected(issue))
 						issues.Add(issue);
 				}
 				return issues;
@@ -261,7 +269,7 @@ namespace JiraSVN.Plugin.UI
 		internal bool IsSelected(IIssue issue)
 		{
 			bool val;
-			return _selected.TryGetValue(issue.Id, out val) && val; 	
+			return _selected.TryGetValue(issue.Id, out val) && val;
 		}
 
 		internal void Select(IIssue issue, bool select)
@@ -269,12 +277,12 @@ namespace JiraSVN.Plugin.UI
 			if (IsSelected(issue) != select)
 			{
 				if (select)
-					_selected[issue.Id] = select;
+					_selected[issue.Id] = true;
 				else
 					_selected.Remove(issue.Id);
 
 				RebuildActions();
-                OnPropertyChanged("CanAddWorklog");
+				OnPropertyChanged("CanAddWorklog");
 			}
 		}
 
@@ -288,14 +296,17 @@ namespace JiraSVN.Plugin.UI
 			if (newComments.EndsWith(_lastCommentAppended))
 				newComments = newComments.Substring(0, newComments.Length - _lastCommentAppended.Length);
 			if (newComments.Trim() != _comments.Trim())
-				this.Comments = newComments;
+				Comments = newComments;
 		}
 
 		public string GetFullComments()
-		{ return GetFullComments(this.Comments); }
+		{
+			return GetFullComments(Comments);
+		}
+
 		protected string GetFullComments(string message)
 		{
-			StringBuilder result = new StringBuilder(message.TrimEnd());
+			var result = new StringBuilder(message.TrimEnd());
 			int posStart = result.Length;
 			if (result.Length > 0)
 				result.AppendLine(Environment.NewLine);
@@ -318,10 +329,10 @@ namespace JiraSVN.Plugin.UI
 		{
 			_serializer.Serialize(_storage);
 
-			List<Exception> errors = new List<Exception>();
-			IList<IIssue> selectedIssues = this.SelectedIssues;
+			var errors = new List<Exception>();
+			IList<IIssue> selectedIssues = SelectedIssues;
 			_selected.Clear(); //don't want to do this twice...
-			StringBuilder comments = new StringBuilder(Comments);
+			var comments = new StringBuilder(Comments);
 			if (revision > 0)
 			{
 				if (comments.Length > 0)
@@ -348,9 +359,9 @@ namespace JiraSVN.Plugin.UI
 			{
 				try
 				{
-                    if (AddWorklog && TimeSpent.Length > 0)
-                        issue.ProcessWorklog(_timeSpent, _timeEstimateRecalcualationMethod, _newTimeEstimate);
-                }
+					if (AddWorklog && TimeSpent.Length > 0)
+						issue.ProcessWorklog(_timeSpent, _timeEstimateRecalcualationMethod, _newTimeEstimate);
+				}
 				catch (Exception e)
 				{
 					Log.Error(e, "Failed to commit issue {0} - {1}", issue.DisplayId, issue.Name);
@@ -359,7 +370,7 @@ namespace JiraSVN.Plugin.UI
 
 				try
 				{
-                    if (actionName != null)
+					if (actionName != null)
 					{
 						IIssueUser finalAssignee = assignee;
 						if (finalAssignee == ReportedByUser.Instance)
@@ -371,7 +382,10 @@ namespace JiraSVN.Plugin.UI
 						foreach (IIssueAction action in issue.GetActions())
 						{
 							if (action.Name == actionName)
-							{ finalAction = action; break; }
+							{
+								finalAction = action;
+								break;
+							}
 						}
 
 						if (finalAction == null)
@@ -382,8 +396,8 @@ namespace JiraSVN.Plugin.UI
 						issue.ProcessAction(comments.ToString(), finalAction, finalAssignee);
 					}
 					else
-                        issue.AddComment(comments.ToString());
-                }
+						issue.AddComment(comments.ToString());
+				}
 				catch (Exception e)
 				{
 					Log.Error(e, "Failed to commit issue {0} - {1}", issue.DisplayId, issue.Name);
@@ -396,12 +410,12 @@ namespace JiraSVN.Plugin.UI
 		/// <summary>
 		/// Get an intersection of the actions available on all visible and selected items.
 		/// </summary>
-		void RebuildActions()
+		private void RebuildActions()
 		{
-			Dictionary<string, int> actionsCount = new Dictionary<string, int>();
-			Dictionary<string, IIssueAction> actions = new Dictionary<string, IIssueAction>();
+			var actionsCount = new Dictionary<string, int>();
+			var actions = new Dictionary<string, IIssueAction>();
 
-			IList<IIssue> selected = this.SelectedIssues;
+			IList<IIssue> selected = SelectedIssues;
 			foreach (IIssue issue in selected)
 			{
 				foreach (IIssueAction action in issue.GetActions())
@@ -422,130 +436,210 @@ namespace JiraSVN.Plugin.UI
 
 			_actions.ReplaceContents(actions.Values);
 			OnPropertyChanged("CanPerformActions");
-			if(CanPerformActions)
+			if (CanPerformActions)
 				OnPropertyChanged("SelectedAction");
 		}
 
 		#region Data bound properties
-
 		public int SelectedFilter
 		{
 			get { return _filters.SelectedIndex; }
-			set { _filters.SelectedIndex = value; ServerFilterChanged("SelectedFilter"); } 
+			set
+			{
+				_filters.SelectedIndex = value;
+				ServerFilterChanged("SelectedFilter");
+			}
 		}
-		public IBindingList<IIssueFilter> Filters { get { return _filters; } }
+
+		public IBindingList<IIssueFilter> Filters
+		{
+			get { return _filters; }
+		}
 
 		public int SelectedAssignmentFilter
 		{
 			get { return _assignedFilter.SelectedIndex; }
-			set { _assignedFilter.SelectedIndex = value; CheckIfFilterChanged("SelectedAssignmentFilter"); } 
+			set
+			{
+				_assignedFilter.SelectedIndex = value;
+				CheckIfFilterChanged("SelectedAssignmentFilter");
+			}
 		}
-		public IBindingList<IIssueUser> AssignmentFilter { get { return _assignedFilter; } }
+
+		public IBindingList<IIssueUser> AssignmentFilter
+		{
+			get { return _assignedFilter; }
+		}
 
 		public int SelectedStatusFilter
 		{
 			get { return _statusFilter.SelectedIndex; }
-			set { _statusFilter.SelectedIndex = value; CheckIfFilterChanged("SelectedStatusFilter"); } 
+			set
+			{
+				_statusFilter.SelectedIndex = value;
+				CheckIfFilterChanged("SelectedStatusFilter");
+			}
 		}
-		public IBindingList<IIssueState> StatusFilter { get { return _statusFilter; } }
+
+		public IBindingList<IIssueState> StatusFilter
+		{
+			get { return _statusFilter; }
+		}
+
 		public string TextFilter
 		{
 			get { return _textFilter; }
-			set { _textFilter = value; CheckIfFilterChanged("TextFilter"); }
+			set
+			{
+				_textFilter = value;
+				CheckIfFilterChanged("TextFilter");
+			}
 		}
 
 		public string Comments
 		{
 			get { return _comments; }
-			set { _comments = value; OnPropertyChanged("Comments"); }
+			set
+			{
+				_comments = value;
+				OnPropertyChanged("Comments");
+			}
 		}
 
-        public bool CanAddWorklog { get { return _selected.Count > 0; }  }
+		public bool CanAddWorklog
+		{
+			get { return _selected.Count > 0; }
+		}
 
-	    public bool AddWorklog
-	    {
-            get { return _addWorklog; }
-            set { _addWorklog = value; OnPropertyChanged("AddWorklog"); }
-	    }
+		public bool AddWorklog
+		{
+			get { return _addWorklog; }
+			set
+			{
+				_addWorklog = value;
+				OnPropertyChanged("AddWorklog");
+			}
+		}
 
-        public string TimeSpent
-        {
-            get { return _timeSpent; }
-            set { _timeSpent  = value; OnPropertyChanged("TimeSpent"); }
-        }
+		public string TimeSpent
+		{
+			get { return _timeSpent; }
+			set
+			{
+				_timeSpent = value;
+				OnPropertyChanged("TimeSpent");
+			}
+		}
 
-        public List<string> TimeEstimateMethodsAvailable
-	    {
-            get
-            {
-                var result = new List<string>();
+		public List<string> TimeEstimateMethodsAvailable
+		{
+			get
+			{
+				var result = new List<string>();
 
-                foreach (TimeEstimateRecalcualationMethod enumValue in
-                           Enum.GetValues(typeof(TimeEstimateRecalcualationMethod)))
-                {
-                    var fi = typeof(TimeEstimateRecalcualationMethod).GetField((enumValue.ToString()));
+				foreach (TimeEstimateRecalcualationMethod enumValue in
+					Enum.GetValues(typeof(TimeEstimateRecalcualationMethod)))
+				{
+					var fi = typeof(TimeEstimateRecalcualationMethod).GetField((enumValue.ToString()));
 
-                    var da  = (DescriptionAttribute)Attribute.GetCustomAttribute(fi, typeof(DescriptionAttribute));
+					var da = (DescriptionAttribute)Attribute.GetCustomAttribute(fi, typeof(DescriptionAttribute));
 
-                    if (da != null)
-                        result.Add(da.Description);
-                }
+					if (da != null)
+						result.Add(da.Description);
+				}
 
-                return result;
-            }
-	    }
+				return result;
+			}
+		}
 
-	    public bool CanSpecifyNewEstimate
-	    {
-            get
-            {
-                return AddWorklog 
-                    && _timeEstimateRecalcualationMethod == TimeEstimateRecalcualationMethod.SetToNewValue;
-            }
-	    }
+		public bool CanSpecifyNewEstimate
+		{
+			get
+			{
+				return AddWorklog
+				       && _timeEstimateRecalcualationMethod == TimeEstimateRecalcualationMethod.SetToNewValue;
+			}
+		}
 
-	    public int TimeEstimateRecalcualation
-	    {
-            get { return (int)_timeEstimateRecalcualationMethod; }
-            set { _timeEstimateRecalcualationMethod = (TimeEstimateRecalcualationMethod)value; OnPropertyChanged("TimeEstimateRecalcualation"); }
-	    }
+		public int TimeEstimateRecalcualation
+		{
+			get { return (int)_timeEstimateRecalcualationMethod; }
+			set
+			{
+				_timeEstimateRecalcualationMethod = (TimeEstimateRecalcualationMethod)value;
+				OnPropertyChanged("TimeEstimateRecalcualation");
+			}
+		}
 
-	    public string NewTimeEstimate
-	    {
-            get { return _newTimeEstimate; }
-            set { _newTimeEstimate = value; OnPropertyChanged("NewTimeEstimate"); }
-	    }
+		public string NewTimeEstimate
+		{
+			get { return _newTimeEstimate; }
+			set
+			{
+				_newTimeEstimate = value;
+				OnPropertyChanged("NewTimeEstimate");
+			}
+		}
 
-        public bool CanPerformActions { get { return _actions.Count > 0; } }
+		public bool CanPerformActions
+		{
+			get { return _actions.Count > 0; }
+		}
 
 		public bool PerformAction
 		{
 			get { return _doAction; }
-			set { _doAction = value; OnPropertyChanged("PerformAction", "CanAssignTo"); }
+			set
+			{
+				_doAction = value;
+				OnPropertyChanged("PerformAction", "CanAssignTo");
+			}
 		}
+
 		public int SelectedAction
-		{ 
+		{
 			get { return _actions.SelectedIndex; }
-			set { _actions.SelectedIndex = value; OnPropertyChanged("SelectedAction"); } 
+			set
+			{
+				_actions.SelectedIndex = value;
+				OnPropertyChanged("SelectedAction");
+			}
 		}
-		public IBindingList<IIssueAction> ActionsAvailable { get { return _actions; } }
+
+		public IBindingList<IIssueAction> ActionsAvailable
+		{
+			get { return _actions; }
+		}
 
 		public bool CanAssignTo
 		{
 			get { return CanPerformActions && AssignTo && PerformAction; }
 		}
+
 		public bool AssignTo
 		{
 			get { return _doAssign; }
-			set { _doAssign = value; OnPropertyChanged("AssignTo", "CanAssignTo"); }
+			set
+			{
+				_doAssign = value;
+				OnPropertyChanged("AssignTo", "CanAssignTo");
+			}
 		}
+
 		public int SelectedAssignee
 		{
 			get { return _assignees.SelectedIndex; }
-			set { _assignees.SelectedIndex = value; OnPropertyChanged("SelectedAssignee"); } 
+			set
+			{
+				_assignees.SelectedIndex = value;
+				OnPropertyChanged("SelectedAssignee");
+			}
 		}
-		public IBindingList<IIssueUser> PossibleAssignments { get { return _assignees; } }
 
+		public IBindingList<IIssueUser> PossibleAssignments
+		{
+			get { return _assignees; }
+		}
 		#endregion
 	}
 }

@@ -12,14 +12,16 @@
  * limitations under the License.
  */
 #endregion
+
 using System;
+using System.Runtime.InteropServices;
 
 namespace JiraSVN.Common.Interfaces
 {
 	/// <summary>
 	/// Connection to the main issue tracking service 
 	/// </summary>
-	[System.Runtime.InteropServices.ComVisible(false)]
+	[ComVisible(false)]
 	public interface IIssuesService
 	{
 		/// <summary>
@@ -45,6 +47,7 @@ namespace JiraSVN.Common.Interfaces
 		/// <param name="settings"> The method used to retrive app.config settings </param>
 		/// <param name="connection"> The resulting connection with the issue tracking server </param>
 		/// <returns> True if the logon was successful, or false if the credentials are invalid </returns>
-		bool Connect(string url, string userName, string password, Converter<string, string> settings, out IIssuesServiceConnection connection);
+		bool Connect(string url, string userName, string password, Converter<string, string> settings,
+		             out IIssuesServiceConnection connection);
 	}
 }

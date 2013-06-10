@@ -12,6 +12,7 @@
  * limitations under the License.
  */
 #endregion
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -20,7 +21,7 @@ using JiraSVN.Plugin;
 
 namespace JiraSVN.Editor
 {
-	static class Program
+	internal static class Program
 	{
 		/// <summary>
 		/// The main entry point for the application.  This program expects a single input argument
@@ -28,25 +29,25 @@ namespace JiraSVN.Editor
 		/// comments/updates from the command-line.
 		/// </summary>
 		[STAThread]
-		static int Main( string[] args )
+		private static int Main(string[] args)
 		{
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
 
-		    // running as a text-editor for cmd version of svn:
+			// running as a text-editor for cmd version of svn:
 			if (args.Length > 0)
 			{
 				string inputFile = args[0];
 				if (!File.Exists(inputFile))
 				{
-					MessageBox.Show(null, 
-						String.Format("Unable to locate input file: \r\n{0}", inputFile),
-						"File not found.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					MessageBox.Show(null,
+					                String.Format("Unable to locate input file: \r\n{0}", inputFile),
+					                "File not found.", MessageBoxButtons.OK, MessageBoxIcon.Error);
 					return -1;
 				}
 
 				string[] data = File.ReadAllLines(inputFile);
-				List<string> filesChanged = new List<string>();
+				var filesChanged = new List<string>();
 
 				foreach (string sline in data)
 				{
@@ -64,24 +65,25 @@ namespace JiraSVN.Editor
 					string[] paths = filesChanged.ToArray();
 					string commonRoot = Environment.CurrentDirectory;
 
-					using (TortoiseSvnPlugin plugin = new TortoiseSvnPlugin())
+					using (var plugin = new TortoiseSvnPlugin())
 					{
 						if (!plugin.IsConfigured(IntPtr.Zero, String.Empty, Environment.CurrentDirectory))
-							throw new OperationCanceledException(String.Format("Unable to configure the plugin. Please look into the log file at \r\n"));
+							throw new OperationCanceledException(
+								String.Format("Unable to configure the plugin. Please look into the log file at \r\n"));
 
 						string message = plugin.GetCommitMsg(IntPtr.Zero, String.Empty, inputMessage, commonRoot, paths);
 						if (plugin.Canceled)
 							File.Delete(inputFile);
 						else
 						{
-                            message = plugin.CommitChanges(IntPtr.Zero, String.Empty, message, -1, commonRoot, paths);
+							message = plugin.CommitChanges(IntPtr.Zero, String.Empty, message, -1, commonRoot, paths);
 
 							if (message.Length > 0)
 								File.WriteAllText(inputFile, message);
 						}
 					}
 				}
-				catch(Exception e)
+				catch (Exception e)
 				{
 					MessageBox.Show(null, e.Message, e.GetType().Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
 					File.Delete(inputFile);

@@ -12,63 +12,69 @@
  * limitations under the License.
  */
 #endregion
+
 using System;
 using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Windows.Forms;
-using JiraSVN.Plugin.Properties;
 using CSharpTest.Net.Serialization;
+using CSharpTest.Net.Serialization.StorageClasses;
+using JiraSVN.Plugin.Properties;
 
 namespace JiraSVN.Plugin
 {
-    static class CertificateHandler
-    {
-        static readonly INameValueStore Storage;
+	internal static class CertificateHandler
+	{
+		private static readonly INameValueStore Storage;
 
 
-        static CertificateHandler()
-        {
-            ServicePointManager.ServerCertificateValidationCallback = RemoteCertificateValidationCallback;
-            Storage = new CSharpTest.Net.Serialization.StorageClasses.RegistryStorage();
-        }
+		static CertificateHandler()
+		{
+			ServicePointManager.ServerCertificateValidationCallback = RemoteCertificateValidationCallback;
+			Storage = new RegistryStorage();
+		}
 
-        public static void Hook()
-        {
-            Check.NotNull(Storage);
-        }
+		public static void Hook()
+		{
+			Check.NotNull(Storage);
+		}
 
-        static bool RemoteCertificateValidationCallback(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
-        {
-            if (sslPolicyErrors == SslPolicyErrors.None)
-                return true;
+		private static bool RemoteCertificateValidationCallback(object sender, X509Certificate certificate, X509Chain chain,
+		                                                        SslPolicyErrors sslPolicyErrors)
+		{
+			if (sslPolicyErrors == SslPolicyErrors.None)
+				return true;
 
-            WebRequest request = sender as WebRequest;
-            if (request == null || certificate == null)
-                return false;
+			var request = sender as WebRequest;
+			if (request == null || certificate == null)
+				return false;
 
-            bool isAllowed;
-            string allowed, urn = String.Format("{0}:{1}", request.RequestUri.Host, request.RequestUri.Port);
-            if (Storage.Read(urn, certificate.GetCertHashString(), out allowed) && bool.TryParse(allowed, out isAllowed))
-                return isAllowed;
+			bool isAllowed;
+			string allowed, urn = String.Format("{0}:{1}", request.RequestUri.Host, request.RequestUri.Port);
+			if (Storage.Read(urn, certificate.GetCertHashString(), out allowed) && bool.TryParse(allowed, out isAllowed))
+				return isAllowed;
 
-            string sslErrorDesc = String.Empty;
-            if ((sslPolicyErrors & SslPolicyErrors.RemoteCertificateChainErrors) == SslPolicyErrors.RemoteCertificateChainErrors)
-                sslErrorDesc += Resources.RemoteCertificateChainErrors;
-            else if ((sslPolicyErrors & SslPolicyErrors.RemoteCertificateNameMismatch) == SslPolicyErrors.RemoteCertificateNameMismatch)
-                sslErrorDesc += Resources.RemoteCertificateNameMismatch;
-            else if ((sslPolicyErrors & SslPolicyErrors.RemoteCertificateNotAvailable) == SslPolicyErrors.RemoteCertificateNotAvailable)
-                sslErrorDesc += Resources.RemoteCertificateNotAvailable;
+			string sslErrorDesc = String.Empty;
+			if ((sslPolicyErrors & SslPolicyErrors.RemoteCertificateChainErrors) == SslPolicyErrors.RemoteCertificateChainErrors)
+				sslErrorDesc += Resources.RemoteCertificateChainErrors;
+			else if ((sslPolicyErrors & SslPolicyErrors.RemoteCertificateNameMismatch) ==
+			         SslPolicyErrors.RemoteCertificateNameMismatch)
+				sslErrorDesc += Resources.RemoteCertificateNameMismatch;
+			else if ((sslPolicyErrors & SslPolicyErrors.RemoteCertificateNotAvailable) ==
+			         SslPolicyErrors.RemoteCertificateNotAvailable)
+				sslErrorDesc += Resources.RemoteCertificateNotAvailable;
 
-            sslErrorDesc = String.Format(Resources.SslErrorDescPromptFormat,
-                urn, sslErrorDesc, certificate.Subject, certificate.GetCertHashString());
+			sslErrorDesc = String.Format(Resources.SslErrorDescPromptFormat,
+			                             urn, sslErrorDesc, certificate.Subject, certificate.GetCertHashString());
 
-            DialogResult dr = MessageBox.Show(sslErrorDesc, "SSL Error", MessageBoxButtons.YesNo, MessageBoxIcon.Error, MessageBoxDefaultButton.Button2);
-            if (dr != DialogResult.Yes)
-                return false;
+			DialogResult dr = MessageBox.Show(sslErrorDesc, "SSL Error", MessageBoxButtons.YesNo, MessageBoxIcon.Error,
+			                                  MessageBoxDefaultButton.Button2);
+			if (dr != DialogResult.Yes)
+				return false;
 
-            Storage.Write(urn, certificate.GetCertHashString(), true.ToString());
-            return true;
-        }
-    }
+			Storage.Write(urn, certificate.GetCertHashString(), true.ToString());
+			return true;
+		}
+	}
 }

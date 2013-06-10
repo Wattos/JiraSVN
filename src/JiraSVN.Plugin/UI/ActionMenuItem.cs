@@ -12,16 +12,18 @@
  * limitations under the License.
  */
 #endregion
+
 using System;
 using System.Windows.Forms;
 using JiraSVN.Common.Interfaces;
 
 namespace JiraSVN.Plugin.UI
 {
-	class ActionMenuItem : ToolStripMenuItem
+	internal class ActionMenuItem : ToolStripMenuItem
 	{
-		IssueItemView _issue;
-		IIssueAction _action;
+		private readonly IssueItemView _issue;
+		private readonly IIssueAction _action;
+
 		public ActionMenuItem(IssueItemView item, IIssueAction action)
 			: base(action.Name)
 		{
@@ -30,10 +32,10 @@ namespace JiraSVN.Plugin.UI
 
 			ToolTipText = String.Format("{0} and assign to {1}.", _action.Name, _issue.ReportedBy.Name);
 
-			base.Click += new EventHandler(DoClick);
+			Click += DoClick;
 		}
 
-		void DoClick(object sender, EventArgs args)
+		private void DoClick(object sender, EventArgs args)
 		{
 			try
 			{
@@ -41,9 +43,10 @@ namespace JiraSVN.Plugin.UI
 			}
 			catch (Exception e)
 			{
-				Control ctrl = sender as Control;
+				var ctrl = sender as Control;
 
-				MessageBox.Show(ctrl == null ? null : ctrl.FindForm(), e.Message, e.Source, MessageBoxButtons.OK, MessageBoxIcon.Error);
+				MessageBox.Show(ctrl == null ? null : ctrl.FindForm(), e.Message, e.Source, MessageBoxButtons.OK,
+				                MessageBoxIcon.Error);
 			}
 		}
 	}

@@ -12,30 +12,32 @@
  * limitations under the License.
  */
 #endregion
+
 using System;
 using JiraSVN.Common.Interfaces;
 using JiraSVN.Jira.Jira;
 
 namespace JiraSVN.Jira
 {
-	class JiraFilter : BaseIdentifiable<RemoteFilter>, IIssueFilter
+	internal class JiraFilter : BaseIdentifiable<RemoteFilter>, IIssueFilter
 	{
-		JiraConnection _connection;
+		private readonly JiraConnection _connection;
+
 		public JiraFilter(JiraConnection conn, RemoteFilter filter)
 			: base(filter, filter.id, filter.name)
 		{
 			_connection = conn;
 		}
 
-        public IIssue[] GetIssues(int offsett, int maxNumber)
+		public IIssue[] GetIssues(int offsett, int maxNumber)
 		{
-            return _connection.GetIssuesByFilter(this, offsett, maxNumber);
+			return _connection.GetIssuesByFilter(this, offsett, maxNumber);
 		}
 	}
 
-	class JiraAllFilter : BaseIdentifiable<RemoteFilter>, IIssueFilterWithSearch
+	internal class JiraAllFilter : BaseIdentifiable<RemoteFilter>, IIssueFilterWithSearch
 	{
-		JiraConnection _connection;
+		private readonly JiraConnection _connection;
 
 		public JiraAllFilter(JiraConnection conn)
 			: base(null, "[Search All Issues]", "[Search All Issues]")
@@ -45,34 +47,37 @@ namespace JiraSVN.Jira
 
 		public IIssue[] GetIssues(int offsett, int maxNumber)
 		{
-			//return _connection.GetAllIssues();
-			return new IIssue[1] { JiraAllFilterMessage.Instance };
+			return new IIssue[] {JiraAllFilterMessage.Instance};
 		}
 
-        public IIssue[] GetIssues(string text, int offsett, int maxNumber)
+		public IIssue[] GetIssues(string text, int offsett, int maxNumber)
 		{
 			try
 			{
 				if (String.IsNullOrEmpty(text) || text.Trim().Length < 2)
 					return GetIssues(offsett, maxNumber);
 
-                return _connection.GetAllIssues(text, offsett, maxNumber);
+				return _connection.GetAllIssues(text, offsett, maxNumber);
 			}
 			catch (Exception e)
 			{
 				Log.Warning(e);
-                return GetIssues(offsett, maxNumber);
+				return GetIssues(offsett, maxNumber);
 			}
 		}
 
 		#region class JiraAllFilterMessage : IIssue
-		class JiraAllFilterMessage : IIssue
+		private class JiraAllFilterMessage : IIssue
 		{
 			public static readonly JiraAllFilterMessage Instance = new JiraAllFilterMessage();
-			private JiraAllFilterMessage() { }
+
+			private JiraAllFilterMessage()
+			{
+			}
 
 			public void AddComment(string comment)
-			{ }
+			{
+			}
 
 			public IIssueUser AssignedTo
 			{
@@ -108,17 +113,18 @@ namespace JiraSVN.Jira
 			{
 			}
 
-		    public void ProcessWorklog(string timeSpent, TimeEstimateRecalcualationMethod method, string newTimeEstimate)
-		    {
-		    }
+			public void ProcessWorklog(string timeSpent, TimeEstimateRecalcualationMethod method, string newTimeEstimate)
+			{
+			}
 
-		    public IIssueUser ReportedBy
+			public IIssueUser ReportedBy
 			{
 				get { return JiraUser.Unknown; }
 			}
 
 			public void View()
-			{ }
+			{
+			}
 
 			public string Id
 			{

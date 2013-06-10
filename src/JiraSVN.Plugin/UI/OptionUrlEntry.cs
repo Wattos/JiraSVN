@@ -12,33 +12,27 @@
  * limitations under the License.
  */
 #endregion
+
 using System;
 using System.Windows.Forms;
 
-namespace JiraSVN.Plugin
+namespace JiraSVN.Plugin.UI
 {
 	partial class OptionUrlEntry : Form
 	{
 		public OptionUrlEntry(string serviceUri, string desc)
 		{
 			InitializeComponent();
-			
-			ServiceUri.TextChanged += new EventHandler(ServiceUri_TextChanged);
+
+			ServiceUri.TextChanged += ServiceUri_TextChanged;
 			ServiceUri.Text = String.Format("{0}", serviceUri);
 			_message.Text = desc;
 		}
 
-		void ServiceUri_TextChanged(object sender, EventArgs e)
+		private void ServiceUri_TextChanged(object sender, EventArgs e)
 		{
 			Uri uri;
-			this.okButton.Enabled = Uri.TryCreate(ServiceUri.Text, UriKind.Absolute, out uri);
+			okButton.Enabled = Uri.TryCreate(ServiceUri.Text, UriKind.Absolute, out uri);
 		}
-
-		protected override void OnShown(EventArgs e)
-		{
-			base.OnShown(e);
-		}
-
-
 	}
 }

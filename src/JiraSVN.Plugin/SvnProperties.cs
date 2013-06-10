@@ -12,40 +12,47 @@
  * limitations under the License.
  */
 #endregion
+
 using System;
+using System.Diagnostics;
 using System.IO;
 using SharpSvn;
 
 namespace JiraSVN.Plugin
 {
-	class SvnProperties
+	internal class SvnProperties
 	{
-		readonly string _base;
+		private readonly string _base;
+
 		public SvnProperties(string basePath)
-		{ _base = basePath; }
+		{
+			_base = basePath;
+		}
 
 		public string Search(string path, bool recurseUp, string propName)
 		{
-
 			if (!String.IsNullOrEmpty(_base))
 				path = Path.Combine(_base, path);
 
-			if (!Directory.Exists(path) )
+			if (!Directory.Exists(path))
 			{
-				if( !File.Exists(path) )
+				if (!File.Exists(path))
 					throw new FileNotFoundException(path);
 				path = Path.GetDirectoryName(path);
 			}
 
-            using (var client = new SvnClient()) {
-                string result;
-                Guid guid;
-                do {
-                    client.TryGetProperty(SvnTarget.FromString(path), propName, out result);
-                    path = Directory.GetParent(path).FullName;
-                } while (result == null && recurseUp && client.TryGetRepositoryId(path, out guid));
-                return result ?? string.Empty;
-            }
+			using (var client = new SvnClient())
+			{
+				string result;
+				Guid guid;
+				do
+				{
+					client.TryGetProperty(SvnTarget.FromString(path), propName, out result);
+					Debug.Assert(path != null, "path != null");
+					path = Directory.GetParent(path).FullName;
+				} while (result == null && recurseUp && client.TryGetRepositoryId(path, out guid));
+				return result ?? string.Empty;
+			}
 		}
 	}
 }
